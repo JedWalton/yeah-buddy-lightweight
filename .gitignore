@@ -209,3 +209,4 @@ build/
 .air.tmp
 
 *db
+*db.bak*
