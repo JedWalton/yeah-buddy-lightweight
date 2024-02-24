@@ -1,0 +1,27 @@
+version: '3.8'
+services:
+  db:
+    image: postgres:15
+    restart: always
+    ports:
+      - '5432:5432'
+    volumes:
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    env_file:
+      - ./.env
+
+  backend:
+    image: backend 
+    build:
+      context: ./backend
+      dockerfile:  Dockerfile
+    ports:
+      - '8080:8080'  # assuming your backend runs on port 8080
+    volumes:
+      - ./backend:/app
+    env_file:
+      - ./.env
+
+volumes:
+  db:
+    driver: local
