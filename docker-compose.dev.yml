@@ -1,0 +1,33 @@
+version: '3.8'
+services:
+  db:
+    image: postgres:15
+    restart: always
+    ports:
+      - '5432:5432'
+    volumes:
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    env_file:
+      - .env
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    image: aint_nothing_but_a_peanut
+    build:
+      context: ./aint_nothing_but_a_peanut
+      dockerfile: Dockerfile
+    ports:
+      - '8080:8080'
+    volumes:
+      - ./aint_nothing_but_a_peanut:/app
+    env_file:
+      - ./.env
+
+volumes:
+  db:
+    driver: local
+

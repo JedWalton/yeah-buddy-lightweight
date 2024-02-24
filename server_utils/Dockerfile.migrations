@@ -1,0 +1,19 @@
+# Use an Alpine Linux base image
+FROM alpine:latest
+
+# Install the migrate tool
+# Note: Adjust the installation command based on the latest instructions from https://github.com/golang-migrate/migrate
+RUN apk add --no-cache curl && \
+    curl -L https://github.com/golang-migrate/migrate/releases/download/v4.15.1/migrate.linux-amd64.tar.gz | tar xvz && \
+    mv migrate.linux-amd64 /usr/local/bin/migrate && \
+    apk del curl
+
+# Set the working directory in the container
+WORKDIR /app
+
+# Copy the migration scripts into the container
+COPY ../aint_nothing_but_a_peanut/migrations /app/migrations
+
+# Command to run when the container starts
+CMD echo "[`date`] Running DB migrations..." && \
+    migrate -database "${APP_DSN}" -path ./migrations up
