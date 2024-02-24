@@ -17,7 +17,7 @@ services:
   backend:
     image: backend
     build:
-      context: ./backend
+      context: ./aint_nothing_but_a_peanut
       dockerfile: Dockerfile
     ports:
       - '8080:8080'
