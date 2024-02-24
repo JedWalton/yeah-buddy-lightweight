@@ -13,27 +13,27 @@ services:
       driver: gcplogs
       options:
         gcp-project: yeah-buddy-lightweight
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   backend:
-    image: backend
+    image: aint_nothing_but_a_peanut
     build:
       context: ./aint_nothing_but_a_peanut
       dockerfile: Dockerfile
     ports:
       - '8080:8080'
     volumes:
-      - ./backend:/app
+      - ./aint_nothing_but_a_peanut:/app
     env_file:
       - ./.env
     logging:
       driver: gcplogs
       options:
         gcp-project: yeah-buddy-lightweight
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
 
 volumes:
   db:
