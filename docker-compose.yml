@@ -9,19 +9,30 @@ services:
       - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
     env_file:
       - ./.env
+    logging:
+      driver: syslog
+      options:
+        syslog-address: "udp://localhost:514"
+        tag: "postgres"
 
   backend:
-    image: backend 
+    image: backend
     build:
       context: ./backend
-      dockerfile:  Dockerfile
+      dockerfile: Dockerfile
     ports:
-      - '8080:8080'  # assuming your backend runs on port 8080
+      - '8080:8080'
     volumes:
       - ./backend:/app
     env_file:
       - ./.env
+    logging:
+      driver: syslog
+      options:
+        syslog-address: "udp://localhost:514"
+        tag: "backend"
 
 volumes:
   db:
     driver: local
+
