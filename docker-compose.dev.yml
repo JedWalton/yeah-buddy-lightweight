@@ -8,7 +8,7 @@ services:
     volumes:
       - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
     env_file:
-      - .env
+      - ./.env
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 10s
@@ -19,7 +19,7 @@ services:
     image: aint_nothing_but_a_peanut
     build:
       context: ./aint_nothing_but_a_peanut
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
     ports:
       - '8080:8080'
     volumes:
