@@ -10,7 +10,7 @@ func Init(r *gin.Engine) {
 }
 
 func hello_auth(r *gin.Engine) gin.IRoutes {
-	return r.GET("/ping", func(c *gin.Context) {
+	return r.GET("/auth/ping", func(c *gin.Context) {
 		login(c)
 	})
 }

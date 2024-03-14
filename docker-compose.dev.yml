@@ -6,7 +6,7 @@ services:
     ports:
       - '5432:5432'
     volumes:
-      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
     env_file:
       - ./.env
     healthcheck:
@@ -30,4 +30,3 @@ services:
 volumes:
   db:
     driver: local
-
