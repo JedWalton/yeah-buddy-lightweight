@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"github.com/gin-gonic/gin"
 	"i-couldve-got-six-reps/app/auth"
 	"i-couldve-got-six-reps/app/db"
@@ -11,18 +12,26 @@ func main() {
 	r := gin.Default()
 
 	// init database
-	db := db.Init()
-	defer db.Close()
+	database := db.Init()
+	defer func(database *sql.DB) {
+		err := database.Close()
+		if err != nil {
+			panic(err)
+		}
+	}(database)
 
-	r.Use(middleware.DB(db))
+	r.Use(middleware.DB(database))
 
 	// init services
-	init_service(r)
+	initService(r)
 
-	r.Run() // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
+	err := r.Run()
+	if err != nil {
+		return
+	} // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
 }
 
-func init_service(r *gin.Engine) {
+func initService(r *gin.Engine) {
 	// init auth service
 	auth.Init(r)
 	// init other services
