@@ -1,6 +1,6 @@
 version: '3.8'
 services:
-  db:
+  database:
     image: postgres:15
     restart: always
     ports:
@@ -28,5 +28,5 @@ services:
       - ./.env
 
 volumes:
-  db:
+  database:
     driver: local
