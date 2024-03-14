@@ -1,4 +1,4 @@
-root = "./cmd"
+root = "./"
 testdata_dir = "testdata"
 tmp_dir = ".air.tmp"
 
