@@ -1,32 +1,33 @@
 package auth
 
 import (
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
 
-func Init(r *gin.Engine) {
-	// init auth service
-	login(r)
-}
-
-//func hello_auth(r *gin.Engine) gin.IRoutes {
-//	return r.GET("/auth/ping", func(c *gin.Context) {
-//		login(c)
-//	})
+//func InitProtected(r *gin.Engine) {
+//	protected := r.Group("/auth/protected")
+//	protected.Use(middleware.AuthMiddleware())
+//	login(protected)
 //}
 
-func login(r *gin.Engine) gin.IRoutes {
+func initPublic(r *gin.Engine) {
+	public := r.Group("/auth/public")
+	login(public)
+}
 
-	fmt.Printf("login\n")
+func Init(r *gin.Engine) {
+	//InitProtected(r)
+	initPublic(r)
+}
+
+func login(r *gin.RouterGroup) gin.IRoutes {
 	return r.POST("/login", func(c *gin.Context) {
-		fmt.Printf("login\n")
-		LoginHandler(c)
+		loginHandler(c)
 	})
 }
 
-func LoginHandler(c *gin.Context) {
+func loginHandler(c *gin.Context) {
 	var loginCredentials struct {
 		Username string `json:"username"`
 		Password string `json:"password"`
@@ -52,12 +53,3 @@ func LoginHandler(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"token": tokenString})
 }
-
-// Public route
-
-// Protected route
-//r.GET("/protected", JWTAuthMiddleware(), func(c *gin.Context) {
-//	// If the request reaches this point, it means the user is authenticated
-//	username := c.MustGet("username").(string) // Extract username from the token
-//	c.JSON(http.StatusOK, gin.H{"username": username, "message": "Welcome to the protected route!"})
-//})

@@ -16,25 +16,32 @@ func DB(db *sql.DB) gin.HandlerFunc {
 	}
 }
 
-// JWTAuthMiddleware checks the token from the request.
-func JWTAuthMiddleware() gin.HandlerFunc {
+func AuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		jwtSecret := os.Getenv("JWT_SECRET")
 		tokenString := c.GetHeader("Authorization")
 
-		fmt.Printf("JWT_SECRET: %s\n", jwtSecret)
-		fmt.Printf("tokenString: %s\n", tokenString)
-		claims := &jwt.StandardClaims{}
-		token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
-			return jwtSecret, nil
+		jwtSecret := os.Getenv("JWT_SECRET")
+		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+				return nil, fmt.Errorf("Unexpected signing method")
+			}
+			return []byte(jwtSecret), nil
 		})
 
-		if err != nil || !token.Valid {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		if err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+			c.Abort()
 			return
 		}
 
-		c.Set("username", claims.Subject)
+		if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+			c.Set("username", claims["username"])
+		} else {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+			c.Abort()
+			return
+		}
+
 		c.Next()
 	}
 }

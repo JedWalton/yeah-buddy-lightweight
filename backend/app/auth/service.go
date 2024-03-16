@@ -1,14 +1,21 @@
 package auth
 
 import (
+	"errors"
 	"github.com/dgrijalva/jwt-go"
+	"log"
 	"os"
 	"time"
 )
 
 // GenerateJWT generates a JWT token for a given user.
 func GenerateJWT(username string) (string, error) {
-	jwtSecret := os.Getenv("JWT_SECRET")
+	jwtSecret := []byte(os.Getenv("JWT_SECRET"))
+	if jwtSecret == nil || len(jwtSecret) == 0 {
+		log.Println("JWT_SECRET is not set or empty")
+		return "", errors.New("JWT secret is not set or empty")
+	}
+
 	expirationTime := time.Now().Add(24 * time.Hour)
 	claims := &jwt.StandardClaims{
 		Subject:   username,
@@ -17,8 +24,8 @@ func GenerateJWT(username string) (string, error) {
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	tokenString, err := token.SignedString(jwtSecret)
-
 	if err != nil {
+		log.Printf("Failed to sign the token: %v\n", err)
 		return "", err
 	}
 

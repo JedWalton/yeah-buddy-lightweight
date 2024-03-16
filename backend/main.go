@@ -21,7 +21,7 @@ func main() {
 	}(database)
 
 	// init middleware
-	initMiddleware(r, database)
+	initGlobalMiddleware(r, database)
 
 	// init services
 	initService(r)
@@ -29,19 +29,16 @@ func main() {
 	err := r.Run()
 	if err != nil {
 		return
-	} // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
+	} // listen and serve on 0.0.0.0:8080
 }
 
-func initMiddleware(r *gin.Engine, database *sql.DB) {
+func initGlobalMiddleware(r *gin.Engine, database *sql.DB) {
 	r.Use(middleware.DB(database))
-	//r.Use(middleware.JWTAuthMiddleware())
 }
 
 func initService(r *gin.Engine) {
-	// init auth service
 	auth.Init(r)
-	protected := r.Group("/")
-	protected.Use(middleware.JWTAuthMiddleware())
+
 	// init other services
 	// ...
 }
