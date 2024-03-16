@@ -1,19 +1,26 @@
 package auth
 
 import (
-	"github.com/gin-gonic/gin"
-	"net/http"
+	"github.com/dgrijalva/jwt-go"
+	"os"
+	"time"
 )
 
-func login(c *gin.Context) {
-	_, exists := c.Get("db")
-	if !exists {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "database connection not found"})
+// GenerateJWT generates a JWT token for a given user.
+func GenerateJWT(username string) (string, error) {
+	jwtSecret := os.Getenv("JWT_SECRET")
+	expirationTime := time.Now().Add(24 * time.Hour)
+	claims := &jwt.StandardClaims{
+		Subject:   username,
+		ExpiresAt: expirationTime.Unix(),
 	}
-	// Do something with the database
 
-	// Return a response
-	c.JSON(http.StatusOK, gin.H{
-		"message": "pong",
-	})
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	tokenString, err := token.SignedString(jwtSecret)
+
+	if err != nil {
+		return "", err
+	}
+
+	return tokenString, nil
 }
