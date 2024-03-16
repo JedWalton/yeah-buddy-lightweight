@@ -1,7 +1,9 @@
 package auth
 
 import (
+	"database/sql"
 	"github.com/gin-gonic/gin"
+	"golang.org/x/crypto/bcrypt"
 	"net/http"
 )
 
@@ -28,6 +30,13 @@ func login(r *gin.RouterGroup) gin.IRoutes {
 }
 
 func loginHandler(c *gin.Context) {
+	db, ok := c.MustGet("db").(*sql.DB)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get database connection"})
+		return
+	}
+	userRepo := NewUserRepository(db)
+
 	var loginCredentials struct {
 		Username string `json:"username"`
 		Password string `json:"password"`
@@ -38,14 +47,22 @@ func loginHandler(c *gin.Context) {
 		return
 	}
 
-	// Authenticate the user. This example uses hardcoded credentials.
-	// Replace this with your actual authentication logic (e.g., database query).
-	if loginCredentials.Username != "admin" || loginCredentials.Password != "password" {
+	user, err := userRepo.GetUserByUsername(loginCredentials.Username)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Incorrect username or password"})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to query database"})
+		}
+		return
+	}
+
+	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(loginCredentials.Password)); err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Incorrect username or password"})
 		return
 	}
 
-	tokenString, err := GenerateJWT(loginCredentials.Username)
+	tokenString, err := GenerateJWT(user.Username)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
 		return
