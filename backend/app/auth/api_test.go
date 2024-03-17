@@ -4,10 +4,12 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/dgrijalva/jwt-go"
 	"i-couldve-got-six-reps/app/db"
-	"i-couldve-got-six-reps/app/middleware"
+	"i-couldve-got-six-reps/app/db/middleware"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 
 	"github.com/gin-gonic/gin"
@@ -126,4 +128,61 @@ func TestCreateUserHandler(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Could not clear users table after TestCreateUserHandler: %v", err)
 	}
+}
+
+func TestGetAccountInfoHandlerAuthorized(t *testing.T) {
+	// Set up Gin
+	gin.SetMode(gin.TestMode)
+	r := gin.Default()
+	Init(r)
+
+	// Set up protected route with AuthMiddleware
+
+	// Create a request with Authorization header
+	req, _ := http.NewRequest("GET", "/auth/protected/account-info", nil)
+	req.Header.Set("Authorization", getValidToken())
+
+	// Record the response
+	rr := httptest.NewRecorder()
+	r.ServeHTTP(rr, req)
+
+	// Assert on the response
+	if rr.Code != http.StatusOK {
+		t.Errorf("Expected status code %d, got %d", http.StatusOK, rr.Code)
+	}
+
+}
+
+func TestGetAccountInfoHandlerUnauthorized(t *testing.T) {
+	// Set up Gin
+	gin.SetMode(gin.TestMode)
+	r := gin.Default()
+	Init(r)
+
+	// Set up protected route with AuthMiddleware
+
+	// Create a request with Authorization header
+	req, _ := http.NewRequest("GET", "/auth/protected/account-info", nil)
+	req.Header.Set("Authorization", "SomeBullshitInvalidToken")
+
+	// Record the response
+	rr := httptest.NewRecorder()
+	r.ServeHTTP(rr, req)
+
+	// Assert on the response
+	if rr.Code != http.StatusUnauthorized {
+		t.Errorf("Expected status code %d, got %d", http.StatusUnauthorized, rr.Code)
+	}
+
+}
+
+// Get a valid token for testing.
+func getValidToken() string {
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"username": "testuser",
+	})
+
+	tokenString, _ := token.SignedString([]byte(os.Getenv("JWT_SECRET")))
+
+	return tokenString
 }

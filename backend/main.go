@@ -5,7 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"i-couldve-got-six-reps/app/auth"
 	"i-couldve-got-six-reps/app/db"
-	"i-couldve-got-six-reps/app/middleware"
+	"i-couldve-got-six-reps/app/db/middleware"
 )
 
 func main() {
