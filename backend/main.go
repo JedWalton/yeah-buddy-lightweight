@@ -2,10 +2,12 @@ package main
 
 import (
 	"database/sql"
-	"github.com/gin-gonic/gin"
 	"i-couldve-got-six-reps/app/auth"
 	"i-couldve-got-six-reps/app/db"
 	"i-couldve-got-six-reps/app/db/middleware"
+	"os"
+
+	"github.com/gin-gonic/gin"
 )
 
 func main() {
@@ -26,10 +28,15 @@ func main() {
 	// init services
 	initService(r)
 
-	err := r.Run()
+	port := os.Getenv("PORT") // Get the PORT environment variable
+	if port == "" {
+		port = "8080" // Default to 8080 if no PORT environment variable is set
+	}
+
+	err := r.Run(":" + port) // listen on the specified port
 	if err != nil {
-		return
-	} // listen and serve on 0.0.0.0:8080
+		panic(err) // added panic to handle potential error from r.Run
+	}
 }
 
 func initGlobalMiddleware(r *gin.Engine, database *sql.DB) {
