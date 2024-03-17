@@ -136,8 +136,6 @@ func TestGetAccountInfoHandlerAuthorized(t *testing.T) {
 	r := gin.Default()
 	Init(r)
 
-	// Set up protected route with AuthMiddleware
-
 	// Create a request with Authorization header
 	req, _ := http.NewRequest("GET", "/auth/protected/account-info", nil)
 	req.Header.Set("Authorization", getValidToken())
@@ -158,8 +156,6 @@ func TestGetAccountInfoHandlerUnauthorized(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	r := gin.Default()
 	Init(r)
-
-	// Set up protected route with AuthMiddleware
 
 	// Create a request with Authorization header
 	req, _ := http.NewRequest("GET", "/auth/protected/account-info", nil)

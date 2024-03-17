@@ -8,11 +8,10 @@ import (
 	"net/http"
 )
 
-//func InitProtected(r *gin.Engine) {
-//	protected := r.Group("/auth/protected")
-//	protected.Use(middleware.AuthMiddleware())
-//	login(protected)
-//}
+func Init(r *gin.Engine) {
+	initPublic(r)
+	initProtected(r)
+}
 
 func initPublic(r *gin.Engine) {
 	public := r.Group("/auth/public")
@@ -24,11 +23,6 @@ func initProtected(r *gin.Engine) {
 	protected := r.Group("/auth/protected")
 	protected.Use(middleware.AuthMiddleware())
 	getAccountInfo(protected)
-}
-
-func Init(r *gin.Engine) {
-	initPublic(r)
-	initProtected(r)
 }
 
 func login(r *gin.RouterGroup) gin.IRoutes {
@@ -47,15 +41,6 @@ func getAccountInfo(r *gin.RouterGroup) gin.IRoutes {
 	return r.GET("/account-info", func(c *gin.Context) {
 		getAccountInfoHandler(c)
 	})
-}
-
-func getAccountInfoHandler(c *gin.Context) {
-	username, exists := c.Get("username")
-	if !exists {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Username not found in context"})
-		return
-	}
-	c.JSON(http.StatusOK, gin.H{"username": username})
 }
 
 func loginHandler(c *gin.Context) {
@@ -130,4 +115,13 @@ func createUserHandler(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "User created"})
+}
+
+func getAccountInfoHandler(c *gin.Context) {
+	username, exists := c.Get("username")
+	if !exists {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Username not found in context"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"username": username})
 }
