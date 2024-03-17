@@ -1,20 +1,12 @@
 package middleware
 
 import (
-	"database/sql"
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"os"
 )
-
-func DB(db *sql.DB) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		c.Set("db", db)
-		c.Next()
-	}
-}
 
 func AuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
