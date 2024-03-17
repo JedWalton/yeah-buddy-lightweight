@@ -3,6 +3,7 @@ package auth
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"i-couldve-got-six-reps/app/db"
 	"i-couldve-got-six-reps/app/middleware"
 	"net/http"
@@ -17,14 +18,29 @@ func TestLoginHandler(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	r := gin.Default()
 
+	database := db.Init()
+	repo := NewUserRepository(database)
+
 	// Apply any necessary middleware
-	r.Use(middleware.DB(db.Init()))
+	r.Use(middleware.DB(database))
 
 	// Initialize routes
 	Init(r) // This initializes your routes, adjust as necessary
 
+	username := "testUserLoginHandler"
+	password := "testPasswordLoginHandler"
+	passwordHash, _ := hashPassword(password)
+
+	// Clear the users table before each test
+	_, err := repo.DB.Exec("DELETE FROM users where username = $1", username)
+	if err != nil {
+		t.Fatalf("Could not clear users table before TestLoginHandler: %v", err)
+	}
+
+	repo.CreateUser(username, passwordHash)
+
 	// Create a request to pass to our handler.
-	var jsonStr = []byte(`{"username":"admin", "password":"password"}`)
+	var jsonStr = []byte(fmt.Sprintf(`{"username":"%s", "password":"%s"}`, username, password))
 	req, err := http.NewRequest("POST", "/auth/public/login", bytes.NewBuffer(jsonStr))
 	if err != nil {
 		t.Fatal(err)
@@ -51,5 +67,63 @@ func TestLoginHandler(t *testing.T) {
 	token, ok := response["token"]
 	if !ok || token == "" {
 		t.Errorf("handler returned unexpected body, token not present or empty")
+	}
+
+	// Clear the users table before each test
+	_, err = repo.DB.Exec("DELETE FROM users where username = $1", username)
+	if err != nil {
+		t.Fatalf("Could not clear users table after TestLoginHandler: %v", err)
+	}
+}
+
+func TestCreateUserHandler(t *testing.T) {
+	// Setup Gin router for testing
+	gin.SetMode(gin.TestMode)
+	r := gin.Default()
+
+	database := db.Init()
+	repo := NewUserRepository(database)
+
+	// Apply any necessary middleware
+	r.Use(middleware.DB(database))
+
+	// Initialize routes
+	Init(r) // This initializes your routes, adjust as necessary
+
+	username := "testUserCreateUserHandler"
+	password := "testPasswordCreateUserHandler"
+	passwordHash, _ := hashPassword(password)
+
+	// Clear the users table before each test
+	_, err := repo.DB.Exec("DELETE FROM users where username = $1", username)
+	if err != nil {
+		t.Fatalf("Could not clear users table before TestCreateUserHandler: %v", err)
+	}
+
+	// Create a request to pass to our handler.
+	var jsonStr = []byte(fmt.Sprintf(`{"username":"%s", "password":"%s"}`, username, passwordHash))
+	req, err := http.NewRequest("POST", "/auth/public/create", bytes.NewBuffer(jsonStr))
+	if err != nil {
+		t.Fatal(err)
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	// Record the response
+	rr := httptest.NewRecorder()
+	r.ServeHTTP(rr, req)
+
+	// Check the status code is what we expect
+	if status := rr.Code; status != http.StatusOK {
+		t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusOK)
+	}
+
+	if rr.Body.String() != "{\"message\":\"User created\"}" {
+		t.Errorf("handler returned unexpected body: got %v want %v", rr.Body.String(), "User created")
+	}
+
+	// Clear the users table after each test
+	_, err = repo.DB.Exec("DELETE FROM users where username = $1", username)
+	if err != nil {
+		t.Fatalf("Could not clear users table after TestCreateUserHandler: %v", err)
 	}
 }

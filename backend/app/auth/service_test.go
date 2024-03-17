@@ -3,6 +3,7 @@ package auth
 import (
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
+	"golang.org/x/crypto/bcrypt"
 	"os"
 	"strings"
 	"testing"
@@ -49,6 +50,44 @@ func TestGenerateJWT(t *testing.T) {
 
 			if err != nil && strings.Contains(err.Error(), "token contains an invalid number of segments") {
 				t.Errorf("Token couldn't be parsed properly, error: %v", err)
+			}
+		})
+	}
+}
+
+func TestHashPassword(t *testing.T) {
+	var tests = []struct {
+		name          string
+		password      string
+		expectedError error
+	}{
+		{
+			name:     "empty_password",
+			password: "",
+		},
+		{
+			name:     "short_password",
+			password: "123",
+		},
+		{
+			name:     "average_password",
+			password: "qwerty",
+		},
+		{
+			name:     "long_password",
+			password: "ThisIsAVeryLongPasswordWithSpecialCharacters!@#$%^&*()",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			hashed, err := hashPassword(tt.password)
+			if err != nil {
+				t.Fatalf("Expected no error, got %v", err)
+			}
+			err = bcrypt.CompareHashAndPassword([]byte(hashed), []byte(tt.password))
+			if err != nil {
+				t.Fatalf("Fail to compare password and hashed password: %v", err)
 			}
 		})
 	}

@@ -22,3 +22,11 @@ func (repo *UserRepository) GetUserByUsername(username string) (*dtos.User, erro
 	}
 	return &user, nil
 }
+
+func (repo *UserRepository) CreateUser(username, passwordHash string) error {
+	_, err := repo.DB.Exec("INSERT INTO users (username, password_hash) VALUES ($1, $2)", username, passwordHash)
+	if err != nil {
+		return err
+	}
+	return nil
+}

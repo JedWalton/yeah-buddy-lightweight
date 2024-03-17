@@ -16,6 +16,7 @@ import (
 func initPublic(r *gin.Engine) {
 	public := r.Group("/auth/public")
 	login(public)
+	createUser(public)
 }
 
 func Init(r *gin.Engine) {
@@ -26,6 +27,12 @@ func Init(r *gin.Engine) {
 func login(r *gin.RouterGroup) gin.IRoutes {
 	return r.POST("/login", func(c *gin.Context) {
 		loginHandler(c)
+	})
+}
+
+func createUser(r *gin.RouterGroup) gin.IRoutes {
+	return r.POST("/create", func(c *gin.Context) {
+		createUserHandler(c)
 	})
 }
 
@@ -69,4 +76,36 @@ func loginHandler(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"token": tokenString})
+}
+
+func createUserHandler(c *gin.Context) {
+	db, ok := c.MustGet("db").(*sql.DB)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get database connection"})
+		return
+	}
+	userRepo := NewUserRepository(db)
+
+	var user struct {
+		Username string `json:"username"`
+		Password string `json:"password"`
+	}
+
+	if err := c.ShouldBindJSON(&user); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
+		return
+	}
+
+	passwordHash, err := hashPassword(user.Password)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to hash password"})
+		return
+	}
+
+	if err := userRepo.CreateUser(user.Username, passwordHash); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "User created"})
 }
