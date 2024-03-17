@@ -211,4 +211,4 @@ build/
 *db
 *db.bak*
 
-./server_utils/database_backups/*
+/server_utils/database_backups/*

@@ -6,8 +6,8 @@
 # sudo mv migrate /usr/local/bin/migrate
 
 # Load environment variables from .env file
-. ../.env
+. ./.env
 
 # Run DB migrations
 echo "[`date`] Running DB migrations..." && \
-    migrate -database "${POSTGRESQL_URL_DEV}" -path ../backend/migrations up
+    migrate -database "${POSTGRESQL_URL_DEV}" -path ./backend/migrations up

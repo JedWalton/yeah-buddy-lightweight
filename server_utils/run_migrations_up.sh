@@ -6,7 +6,7 @@
 # sudo mv migrate /usr/local/bin/migrate
 
 # Load environment variables from .env file
-. ../.env
+. ./.env.production.local
 
 # Run DB migrations
 echo "[`date`] Running DB migrations..." && \

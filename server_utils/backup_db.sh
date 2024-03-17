@@ -2,7 +2,7 @@
 
 # Load environment variables from .env file in project root
 set -a
-source ./.env.production
+source ./.env.production.local
 set +a
 
 # Extract the components from POSTGRESQL_URL
