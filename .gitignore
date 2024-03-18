@@ -208,8 +208,5 @@ build/
 
 .air.tmp
 
-*db
-*db.bak*
-
 /server_utils/database_backups/*
 /database/
