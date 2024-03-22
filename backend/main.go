@@ -12,6 +12,7 @@ import (
 
 func main() {
 	r := gin.Default()
+	r.Static("/app", "./frontend")
 
 	// init database
 	database := db.Init()
