@@ -17,7 +17,7 @@ func main() {
 	r := gin.Default()
 
 	// serve frontend
-	r.Static("/app", "./frontend")
+	r.Static("/app", "../frontend")
 
 	// init database
 	database := db.Init()

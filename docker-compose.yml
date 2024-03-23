@@ -15,21 +15,20 @@ services:
       timeout: 5s
       retries: 5
 
-  backend:
-    image: backend
+  application:
+    image: application
     build:
-      context: ./backend
+      context: ./app
       dockerfile: Dockerfile.dev
     ports:
       - '8080:8080'
     volumes:
-      - ./backend:/app # Mounts the backend directory to /app in the container
-      - ./frontend:/app/frontend # Makes the frontend directory available as /app/frontend in the container
+      - ./app:/app # Mounts the backend directory to /app in the container
     env_file:
       - ./.env
     depends_on:
       - database
-    working_dir: /app # Sets the working directory to /app in the container
+    working_dir: /app/backend # Sets the working directory to /app in the container
 
 volumes:
   database:

@@ -22,6 +22,6 @@ func initProtected(r *gin.Engine) {
 
 func submitForm(r *gin.RouterGroup) gin.IRoutes {
 	return r.GET("/htmx", func(c *gin.Context) {
-		c.Data(http.StatusOK, "text/plain", []byte("Hello, World"))
+		c.Data(http.StatusOK, "text/plain", []byte("Hello, World from HTMX"))
 	})
 }
