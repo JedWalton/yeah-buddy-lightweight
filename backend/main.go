@@ -5,6 +5,7 @@ import (
 	"i-couldve-got-six-reps/app/auth"
 	"i-couldve-got-six-reps/app/db"
 	"i-couldve-got-six-reps/app/db/middleware"
+	"i-couldve-got-six-reps/app/htmx"
 	"os"
 
 	"github.com/gin-gonic/gin"
@@ -46,8 +47,8 @@ func initGlobalMiddleware(r *gin.Engine, database *sql.DB) {
 
 func initService(r *gin.Engine) {
 	auth.Init(r)
+	htmx.Init(r)
 	//payment.Init(r)
-
 	// init other services
 	// ...
 }
