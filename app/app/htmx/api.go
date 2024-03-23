@@ -13,14 +13,14 @@ func Init(r *gin.Engine) {
 
 func initPublic(r *gin.Engine) {
 	public := r.Group("/htmx/public")
-	submitForm(public)
+	helloWorld(public)
 }
 
 func initProtected(r *gin.Engine) {
 	r.Group("/htmx/protected").Use(middleware.AuthMiddleware())
 }
 
-func submitForm(r *gin.RouterGroup) gin.IRoutes {
+func helloWorld(r *gin.RouterGroup) gin.IRoutes {
 	return r.GET("/htmx", func(c *gin.Context) {
 		c.Data(http.StatusOK, "text/plain", []byte("Hello, World from HTMX"))
 	})
