@@ -16,8 +16,10 @@ import (
 func main() {
 	r := gin.Default()
 
-	// serve frontend
-	r.Static("/app", "../frontend")
+	// Serve the index.html file for the root path
+	r.GET("/", func(c *gin.Context) {
+		c.File("./frontend/index.html")
+	})
 
 	// init database
 	database := db.Init()
@@ -58,4 +60,5 @@ func initService(r *gin.Engine) {
 	//payment.Init(r)
 	// init other services
 	// ...
+
 }

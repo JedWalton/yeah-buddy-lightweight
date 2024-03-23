@@ -10,4 +10,4 @@
 
 # Run DB migrations
 echo "[`date`] Running DB migrations..." && \
-    migrate -database "${POSTGRESQL_URL_DEV}" -path ./app/migrations up
+    migrate -database "${POSTGRESQL_URL_DEV}" -path ./migrations up
