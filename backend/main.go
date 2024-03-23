@@ -9,10 +9,14 @@ import (
 	"os"
 
 	"github.com/gin-gonic/gin"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 )
 
 func main() {
 	r := gin.Default()
+
+	// serve frontend
 	r.Static("/app", "./frontend")
 
 	// init database
@@ -23,6 +27,9 @@ func main() {
 			panic(err)
 		}
 	}(database)
+
+	zerolog.SetGlobalLevel(zerolog.DebugLevel)
+	log.Logger = log.Output(os.Stdout)
 
 	// init middleware
 	initGlobalMiddleware(r, database)
