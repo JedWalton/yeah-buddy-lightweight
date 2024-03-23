@@ -21,7 +21,7 @@ func initProtected(r *gin.Engine) {
 }
 
 func submitForm(r *gin.RouterGroup) gin.IRoutes {
-	return r.POST("/submit-form", func(c *gin.Context) {
+	return r.GET("/htmx", func(c *gin.Context) {
 		c.Data(http.StatusOK, "text/plain", []byte("Hello, World"))
 	})
 }

@@ -1,34 +1,37 @@
- version: '3.8'
- services:
-   database:
-     image: postgres:15
-     restart: always
-     ports:
-       - '5432:5432'
-     volumes:
-       - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
-     env_file:
-       - ./.env
-     healthcheck:
-       test: ["CMD-SHELL", "pg_isready -U postgres"]
-       interval: 10s
-       timeout: 5s
-       retries: 5
+version: '3.8'
+services:
+  database:
+    image: postgres:15
+    restart: always
+    ports:
+      - '5432:5432'
+    volumes:
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    env_file:
+      - ./.env
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
-   backend:
-     image: backend
-     build:
-       context: ./backend
-       dockerfile: Dockerfile.dev
-     ports:
-       - '8080:8080'
-     volumes:
-       - ./backend:/app
-     env_file:
-       - ./.env
-     depends_on:
-       - database
+  backend:
+    image: backend
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    ports:
+      - '8080:8080'
+    volumes:
+      - ./backend:/app # Mounts the backend directory to /app in the container
+      - ./frontend:/app/frontend # Makes the frontend directory available as /app/frontend in the container
+    env_file:
+      - ./.env
+    depends_on:
+      - database
+    working_dir: /app # Sets the working directory to /app in the container
 
- volumes:
-   database:
-     driver: local
+volumes:
+  database:
+    driver: local
+
