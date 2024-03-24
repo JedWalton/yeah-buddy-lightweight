@@ -2,14 +2,15 @@ package auth
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
 	"i-couldve-got-six-reps/app/db"
 	"i-couldve-got-six-reps/app/db/middleware"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/gin-gonic/gin"
@@ -34,23 +35,59 @@ func TestLoginHandler(t *testing.T) {
 	passwordHash, _ := hashPassword(password)
 
 	// Clear the users table before each test
-	_, err := repo.DB.Exec("DELETE FROM users where username = $1", username)
+	_, err := repo.DB.Exec("DELETE FROM users WHERE username = $1", username)
 	if err != nil {
 		t.Fatalf("Could not clear users table before TestLoginHandler: %v", err)
 	}
 
-	repo.CreateUser(username, passwordHash)
-
+	/* Test login user not exist */
 	// Create a request to pass to our handler.
 	var jsonStr = []byte(fmt.Sprintf(`{"username":"%s", "password":"%s"}`, username, password))
 	req, err := http.NewRequest("POST", "/auth/public/login", bytes.NewBuffer(jsonStr))
 	if err != nil {
 		t.Fatal(err)
 	}
-	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	// Record the response
 	rr := httptest.NewRecorder()
+	r.ServeHTTP(rr, req)
+
+	// Check the status code is what we expect
+	if status := rr.Code; status != http.StatusUnauthorized {
+		t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusUnauthorized)
+	}
+
+	repo.CreateUser(username, passwordHash)
+
+	/* Test login wrong password */
+	// Create a request to pass to our handler.
+	formData := url.Values{}
+	formData.Set("username", username)
+	formData.Set("password", "wrongPassword")
+	req, err = http.NewRequest("POST", "/auth/public/login", strings.NewReader(formData.Encode()))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	// Record the response
+	rr = httptest.NewRecorder()
+	r.ServeHTTP(rr, req)
+
+	// Check the status code is what we expect
+	if status := rr.Code; status != http.StatusUnauthorized {
+		t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusUnauthorized)
+	}
+
+	/* Test login success */
+	// Create a request to pass to our handler.
+	// For "application/x-www-form-urlencoded"
+	formData = url.Values{}
+	formData.Set("username", username)
+	formData.Set("password", password)
+	req, err = http.NewRequest("POST", "/auth/public/login", strings.NewReader(formData.Encode()))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	// Record the response
+	rr = httptest.NewRecorder()
 	r.ServeHTTP(rr, req)
 
 	// Check the status code is what we expect
@@ -58,21 +95,18 @@ func TestLoginHandler(t *testing.T) {
 		t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusOK)
 	}
 
-	// Decode the response body to check for the token
-	var response map[string]string
-	err = json.Unmarshal(rr.Body.Bytes(), &response)
-	if err != nil {
-		t.Fatal("could not decode response body", err)
+	// Check if the "Set-Cookie" header contains "auth_token"
+	setCookie := rr.Header().Get("Set-Cookie")
+	if !strings.Contains(setCookie, "auth_token") {
+		t.Error("auth_token cookie not set in response")
 	}
 
-	// Check if the token is present and not empty
-	token, ok := response["token"]
-	if !ok || token == "" {
-		t.Errorf("handler returned unexpected body, token not present or empty")
-	}
+	// Optionally, you might want to check if the cookie's value (the token) is valid,
+	// which could involve decoding the JWT and checking its payload, but that might
+	// be beyond the scope of this particular test and could require additional setup.
 
-	// Clear the users table before each test
-	_, err = repo.DB.Exec("DELETE FROM users where username = $1", username)
+	// Clear the users table after the test
+	_, err = repo.DB.Exec("DELETE FROM users WHERE username = $1", username)
 	if err != nil {
 		t.Fatalf("Could not clear users table after TestLoginHandler: %v", err)
 	}
@@ -136,9 +170,14 @@ func TestGetAccountInfoHandlerAuthorized(t *testing.T) {
 	r := gin.Default()
 	Init(r)
 
-	// Create a request with Authorization header
+	// Create a request, this time without setting an Authorization header
 	req, _ := http.NewRequest("GET", "/auth/protected/account-info", nil)
-	req.Header.Set("Authorization", getValidToken())
+
+	// Instead, set the token as a cookie
+	req.AddCookie(&http.Cookie{
+		Name:  "auth_token",
+		Value: getValidToken(),
+	})
 
 	// Record the response
 	rr := httptest.NewRecorder()
@@ -148,7 +187,6 @@ func TestGetAccountInfoHandlerAuthorized(t *testing.T) {
 	if rr.Code != http.StatusOK {
 		t.Errorf("Expected status code %d, got %d", http.StatusOK, rr.Code)
 	}
-
 }
 
 func TestGetAccountInfoHandlerUnauthorized(t *testing.T) {
@@ -157,9 +195,14 @@ func TestGetAccountInfoHandlerUnauthorized(t *testing.T) {
 	r := gin.Default()
 	Init(r)
 
-	// Create a request with Authorization header
+	// Create a request, this time also without an Authorization header but expecting it to fail
 	req, _ := http.NewRequest("GET", "/auth/protected/account-info", nil)
-	req.Header.Set("Authorization", "SomeBullshitInvalidToken")
+
+	// Set an invalid token as a cookie
+	req.AddCookie(&http.Cookie{
+		Name:  "auth_token",
+		Value: "SomeInvalidToken",
+	})
 
 	// Record the response
 	rr := httptest.NewRecorder()
@@ -169,7 +212,6 @@ func TestGetAccountInfoHandlerUnauthorized(t *testing.T) {
 	if rr.Code != http.StatusUnauthorized {
 		t.Errorf("Expected status code %d, got %d", http.StatusUnauthorized, rr.Code)
 	}
-
 }
 
 // Get a valid token for testing.

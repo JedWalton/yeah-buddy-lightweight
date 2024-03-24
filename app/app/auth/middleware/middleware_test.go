@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"fmt"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	"net/http"
@@ -43,24 +44,35 @@ func TestAuthMiddleware(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			req, _ := http.NewRequest(http.MethodGet, "/some-end-point", nil)
-			req.Header.Add("Authorization", tc.token)
-			rr := httptest.NewRecorder()
 
+			// Instead of setting the Authorization header, set the token as a cookie
+			if tc.token != "" {
+				req.AddCookie(&http.Cookie{
+					Name:  "auth_token",
+					Value: tc.token,
+				})
+			}
+
+			rr := httptest.NewRecorder()
 			r := gin.Default()
 			r.Use(AuthMiddleware())
 			r.GET("/some-end-point", func(c *gin.Context) {
-				username, _ := c.Get("username")
-				c.String(http.StatusOK, username.(string))
+				username, exists := c.Get("username")
+				if exists {
+					c.String(http.StatusOK, fmt.Sprintf("%v", username))
+				} else {
+					c.String(http.StatusOK, "No username found")
+				}
 			})
 
 			r.ServeHTTP(rr, req)
 
 			if rr.Code != tc.expectedCode {
-				t.Errorf("Expected response code %d, but got %d", tc.expectedCode, rr.Code)
+				t.Errorf("Expected response code %d, but got %d for case '%s'", tc.expectedCode, rr.Code, tc.name)
 			}
 
-			if !strings.Contains(rr.Body.String(), tc.expectedError) && rr.Code == http.StatusUnauthorized {
-				t.Errorf("Expected error '%s', but got %s", tc.expectedError, rr.Body.String())
+			if tc.expectedError != "" && !strings.Contains(rr.Body.String(), tc.expectedError) {
+				t.Errorf("Expected error '%s', but got '%s' for case '%s'", tc.expectedError, rr.Body.String(), tc.name)
 			}
 		})
 	}

@@ -2,11 +2,12 @@ package auth
 
 import (
 	"errors"
-	"github.com/dgrijalva/jwt-go"
-	"golang.org/x/crypto/bcrypt"
 	"log"
 	"os"
 	"time"
+
+	"github.com/dgrijalva/jwt-go"
+	"golang.org/x/crypto/bcrypt"
 )
 
 // GenerateJWT generates a JWT token for a given user.

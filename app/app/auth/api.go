@@ -2,10 +2,11 @@ package auth
 
 import (
 	"database/sql"
-	"github.com/gin-gonic/gin"
-	"golang.org/x/crypto/bcrypt"
 	"i-couldve-got-six-reps/app/auth/middleware"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
+	"golang.org/x/crypto/bcrypt"
 )
 
 func Init(r *gin.Engine) {
@@ -52,11 +53,11 @@ func loginHandler(c *gin.Context) {
 	userRepo := NewUserRepository(db)
 
 	var loginCredentials struct {
-		Username string `json:"username"`
-		Password string `json:"password"`
+		Username string `form:"username" json:"username"`
+		Password string `form:"password" json:"password"`
 	}
 
-	if err := c.ShouldBindJSON(&loginCredentials); err != nil {
+	if err := c.ShouldBind(&loginCredentials); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
 		return
 	}
@@ -82,7 +83,19 @@ func loginHandler(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"token": tokenString})
+	// Set the JWT as a cookie in the response
+	http.SetCookie(c.Writer, &http.Cookie{
+		Name:     "auth_token",            // Cookie name, e.g., "auth_token"
+		Value:    tokenString,             // The JWT
+		Path:     "/",                     // Cookie path. Using "/" means it's sent for all paths.
+		HttpOnly: true,                    // HttpOnly prevents JavaScript access to the cookie, enhancing security
+		Secure:   true,                    // Secure flag ensures the cookie is sent over HTTPS only, enhancing security
+		SameSite: http.SameSiteStrictMode, // SameSite=Strict prevents the cookie from being sent with cross-site requests
+		// Set the MaxAge or Expires field if you want the cookie to expire
+	})
+
+	// Optionally, redirect the user or send a success response
+	c.JSON(http.StatusOK, gin.H{"message": "Login successful"})
 }
 
 func createUserHandler(c *gin.Context) {
@@ -94,11 +107,11 @@ func createUserHandler(c *gin.Context) {
 	userRepo := NewUserRepository(db)
 
 	var user struct {
-		Username string `json:"username"`
-		Password string `json:"password"`
+		Username string `form:"username" json:"username"`
+		Password string `form:"password" json:"password"`
 	}
 
-	if err := c.ShouldBindJSON(&user); err != nil {
+	if err := c.ShouldBind(&user); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
 		return
 	}
@@ -114,6 +127,14 @@ func createUserHandler(c *gin.Context) {
 		return
 	}
 
+	// Optionally, if you want HTMX to replace part of your page with a response,
+	// you can return HTML instead of JSON
+	// For example, to update a "registration message" div:
+	//c.HTML(http.StatusOK, "registration_success.html", gin.H{
+	//	"Username": user.Username,
+	//})
+
+	// Or simply return a success message as JSON if that's your preference
 	c.JSON(http.StatusOK, gin.H{"message": "User created"})
 }
 
