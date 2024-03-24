@@ -17,10 +17,18 @@ func initPublic(r *gin.Engine) {
 }
 
 func initProtected(r *gin.Engine) {
-	r.Group("/htmx/protected").Use(middleware.AuthMiddleware())
+	protected := r.Group("/htmx/protected")
+	protected.Use(middleware.AuthMiddleware())
+	helloWorldButItsProtected(protected)
 }
 
 func helloWorld(r *gin.RouterGroup) gin.IRoutes {
+	return r.GET("/htmx", func(c *gin.Context) {
+		c.Data(http.StatusOK, "text/plain", []byte("Hello, World from HTMX"))
+	})
+}
+
+func helloWorldButItsProtected(r *gin.RouterGroup) gin.IRoutes {
 	return r.GET("/htmx", func(c *gin.Context) {
 		c.Data(http.StatusOK, "text/plain", []byte("Hello, World from HTMX"))
 	})
