@@ -94,6 +94,13 @@ func loginHandler(c *gin.Context) {
 		// Set the MaxAge or Expires field if you want the cookie to expire
 	})
 
+	// Optionally, if you want HTMX to replace part of your page with a response,
+	// you can return HTML instead of JSON
+	// For example, to update a "registration message" div:
+	//c.HTML(http.StatusOK, "registration_success.html", gin.H{
+	//	"Username": user.Username,
+	//})
+
 	// Optionally, redirect the user or send a success response
 	c.JSON(http.StatusOK, gin.H{"message": "Login successful"})
 }

@@ -16,7 +16,7 @@ func main() {
 
 	// Serve the index.html file for the root path
 	r.GET("/", func(c *gin.Context) {
-		c.File("./frontend/index.html")
+		c.File("./app/htmx/templates/index.html")
 	})
 
 	// init database

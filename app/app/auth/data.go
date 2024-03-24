@@ -2,8 +2,9 @@ package auth
 
 import (
 	"database/sql"
-	_ "github.com/lib/pq"
 	"i-couldve-got-six-reps/app/auth/dtos"
+
+	_ "github.com/lib/pq"
 )
 
 type UserRepository struct {

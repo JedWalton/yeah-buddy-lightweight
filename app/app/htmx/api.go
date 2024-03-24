@@ -1,10 +1,14 @@
 package htmx
 
 import (
-	"github.com/gin-gonic/gin"
 	"i-couldve-got-six-reps/app/auth/middleware"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
+
+// This package should contain the API routes for the HTMX service.
+// This will include page navigation and other HTMX specific routes.
 
 func Init(r *gin.Engine) {
 	initPublic(r)
