@@ -1,7 +1,9 @@
 package auth
 
 import (
+	"database/sql"
 	"errors"
+	"github.com/gin-gonic/gin"
 	"log"
 	"os"
 	"time"
@@ -9,6 +11,17 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"golang.org/x/crypto/bcrypt"
 )
+
+type AuthService struct {
+	UserRepository UserRepository
+}
+
+func NewAuthService(r *gin.Engine, database *sql.DB) *AuthService {
+	Init(r)
+	return &AuthService{
+		UserRepository: NewUserRepository(database),
+	}
+}
 
 // GenerateJWT generates a JWT token for a given user.
 func GenerateJWT(username string) (string, error) {

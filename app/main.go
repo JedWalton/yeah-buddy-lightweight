@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"i-couldve-got-six-reps/api/auth"
 	"i-couldve-got-six-reps/api/db"
-	"i-couldve-got-six-reps/api/db/middleware"
 	"i-couldve-got-six-reps/frontend/public/index"
 	"os"
 
@@ -24,10 +23,10 @@ func main() {
 	}(database)
 
 	// init middleware
-	initGlobalMiddleware(r, database)
+	//initGlobalMiddleware(r, database)
 
 	// init api and frontend
-	initApi(r)
+	initApi(r, database)
 	initFrontend(r)
 
 	port := os.Getenv("PORT") // Get the PORT environment variable
@@ -41,12 +40,12 @@ func main() {
 	}
 }
 
-func initGlobalMiddleware(r *gin.Engine, database *sql.DB) {
-	r.Use(middleware.DB(database))
-}
+//func initGlobalMiddleware(r *gin.Engine, database *sql.DB) {
+//	r.Use(middleware.DB(database))
+//}
 
-func initApi(r *gin.Engine) {
-	auth.Init(r)
+func initApi(r *gin.Engine, database *sql.DB) {
+	_ = auth.NewAuthService(r, database)
 }
 
 func initFrontend(r *gin.Engine) {
