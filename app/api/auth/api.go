@@ -5,14 +5,14 @@ import (
 	"i-couldve-got-six-reps/api/auth/middleware"
 )
 
-func Init(r *gin.Engine) {
-	initPublic(r)
+func Init(r *gin.Engine, authService *AuthService) {
+	initPublic(r, authService)
 	initProtected(r)
 }
 
-func initPublic(r *gin.Engine) {
+func initPublic(r *gin.Engine, authService *AuthService) {
 	public := r.Group("/auth/public")
-	login(public)
+	login(public, authService)
 	createUser(public)
 }
 
@@ -22,9 +22,9 @@ func initProtected(r *gin.Engine) {
 	getAccountInfo(protected)
 }
 
-func login(r *gin.RouterGroup) gin.IRoutes {
+func login(r *gin.RouterGroup, authService *AuthService) gin.IRoutes {
 	return r.POST("/login", func(c *gin.Context) {
-		loginHandler(c)
+		loginHandler(c, authService)
 	})
 }
 

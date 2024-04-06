@@ -45,7 +45,8 @@ func main() {
 //}
 
 func initApi(r *gin.Engine, database *sql.DB) {
-	_ = auth.NewAuthService(r, database)
+	authService := auth.NewAuthService(database)
+	auth.Init(r, authService)
 }
 
 func initFrontend(r *gin.Engine) {

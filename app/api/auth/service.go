@@ -3,7 +3,6 @@ package auth
 import (
 	"database/sql"
 	"errors"
-	"github.com/gin-gonic/gin"
 	"log"
 	"os"
 	"time"
@@ -13,19 +12,13 @@ import (
 )
 
 type AuthService struct {
-	UserRepository UserRepository
+	userRepo UserRepository
 }
 
-type authService interface {
-	Login(username, password string) (string, error)
-	Register(username, password string) error
-	AccountInfo(username string) (string, error)
-}
-
-func NewAuthService(r *gin.Engine, database *sql.DB) *AuthService {
-	Init(r)
+func NewAuthService(database *sql.DB) *AuthService {
+	userRepo := NewUserRepository(database)
 	return &AuthService{
-		UserRepository: NewUserRepository(database),
+		userRepo: userRepo,
 	}
 }
 
@@ -59,4 +52,25 @@ func hashPassword(password string) (string, error) {
 		panic(err)
 	}
 	return string(hashedPassword), err
+}
+
+func (s *AuthService) AuthenticateUser(username, password string) (string, error) {
+	user, err := s.userRepo.GetUserByUsername(username)
+	if err != nil {
+		log.Printf("Failed to get user by username: %v\n", err)
+		return "", err
+	}
+
+	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(password)); err != nil {
+		log.Printf("Failed to compare password hashes: %v\n", err)
+		return "", err
+	}
+
+	tokenString, err := generateJWT(user.Username)
+	if err != nil {
+		log.Printf("Failed to generate JWT: %v\n", err)
+		return "", err
+	}
+
+	return tokenString, nil
 }
