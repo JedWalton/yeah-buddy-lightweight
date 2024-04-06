@@ -70,3 +70,41 @@ func TestUserRepository_CreateUser(t *testing.T) {
 		t.Fatalf("Could not clear users table after test case: %v", err)
 	}
 }
+
+func TestUserRepository_DeleteUser(t *testing.T) {
+	database := db.Init()
+	repo := NewUserRepository(database)
+
+	// Define a test user
+	username := "testUserRepositoryDeleteUser"
+	passwordHash, _ := hashPassword("testUserRepositoryDeleteUserPassword")
+
+	// Clear the users table before each test
+	_, err := repo.DB.Exec("DELETE FROM users where username = $1", username)
+	if err != nil {
+		t.Fatalf("Could not clear users table: %v", err)
+	}
+
+	// Test CreateUser function
+	err = repo.CreateUser(username, passwordHash)
+	if err != nil {
+		t.Errorf("CreateUser failed: %v", err)
+	}
+
+	err = repo.DeleteUser(username)
+
+	// Verify the user was deleted form the db
+	var count int
+	err = repo.DB.QueryRow("SELECT COUNT(*) FROM users WHERE username = $1 AND password_hash = $2", username, passwordHash).Scan(&count)
+	if err != nil {
+		t.Fatalf("Could not query users table: %v", err)
+	}
+	if count != 0 {
+		t.Errorf("User was not deleted from the db. Got %d, want 0", count)
+	}
+
+	_, err = repo.DB.Exec("DELETE FROM users where username = $1 AND password_hash = $2", username, passwordHash)
+	if err != nil {
+		t.Fatalf("Could not clear users table after TestUserRepository_DeleteUser test case: %v", err)
+	}
+}

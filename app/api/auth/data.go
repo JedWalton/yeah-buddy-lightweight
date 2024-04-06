@@ -30,3 +30,11 @@ func (repo *UserRepository) CreateUser(username, passwordHash string) error {
 	}
 	return nil
 }
+
+func (repo *UserRepository) DeleteUser(username string) error {
+	_, err := repo.DB.Exec("DELETE FROM users where username = $1", username)
+	if err != nil {
+		return err
+	}
+	return nil
+}

@@ -52,6 +52,10 @@ func (s *AuthService) CreateUser(username, password string) error {
 	return s.userRepo.CreateUser(username, passwordHash)
 }
 
+func (s *AuthService) DeleteUser(username string) error {
+	return s.userRepo.DeleteUser(username)
+}
+
 // generateJWT generates a JWT token for a given user.
 func generateJWT(username string) (string, error) {
 	jwtSecret := []byte(os.Getenv("JWT_SECRET"))
