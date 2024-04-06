@@ -13,7 +13,7 @@ func Init(r *gin.Engine, authService *AuthService) {
 func initPublic(r *gin.Engine, authService *AuthService) {
 	public := r.Group("/auth/public")
 	login(public, authService)
-	createUser(public)
+	createUser(public, authService)
 }
 
 func initProtected(r *gin.Engine) {
@@ -28,9 +28,9 @@ func login(r *gin.RouterGroup, authService *AuthService) gin.IRoutes {
 	})
 }
 
-func createUser(r *gin.RouterGroup) gin.IRoutes {
+func createUser(r *gin.RouterGroup, authService *AuthService) gin.IRoutes {
 	return r.POST("/create", func(c *gin.Context) {
-		createUserHandler(c)
+		createUserHandler(c, authService)
 	})
 }
 

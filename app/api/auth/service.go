@@ -22,6 +22,36 @@ func NewAuthService(database *sql.DB) *AuthService {
 	}
 }
 
+func (s *AuthService) AuthenticateUser(username, password string) (string, error) {
+	user, err := s.userRepo.GetUserByUsername(username)
+	if err != nil {
+		log.Printf("Failed to get user by username: %v\n", err)
+		return "", err
+	}
+
+	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(password)); err != nil {
+		log.Printf("Failed to compare password hashes: %v\n", err)
+		return "", err
+	}
+
+	tokenString, err := generateJWT(user.Username)
+	if err != nil {
+		log.Printf("Failed to generate JWT: %v\n", err)
+		return "", err
+	}
+
+	return tokenString, nil
+}
+
+func (s *AuthService) CreateUser(username, password string) error {
+	passwordHash, err := hashPassword(password)
+	if err != nil {
+		return err
+	}
+
+	return s.userRepo.CreateUser(username, passwordHash)
+}
+
 // generateJWT generates a JWT token for a given user.
 func generateJWT(username string) (string, error) {
 	jwtSecret := []byte(os.Getenv("JWT_SECRET"))
@@ -52,25 +82,4 @@ func hashPassword(password string) (string, error) {
 		panic(err)
 	}
 	return string(hashedPassword), err
-}
-
-func (s *AuthService) AuthenticateUser(username, password string) (string, error) {
-	user, err := s.userRepo.GetUserByUsername(username)
-	if err != nil {
-		log.Printf("Failed to get user by username: %v\n", err)
-		return "", err
-	}
-
-	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(password)); err != nil {
-		log.Printf("Failed to compare password hashes: %v\n", err)
-		return "", err
-	}
-
-	tokenString, err := generateJWT(user.Username)
-	if err != nil {
-		log.Printf("Failed to generate JWT: %v\n", err)
-		return "", err
-	}
-
-	return tokenString, nil
 }

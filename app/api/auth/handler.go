@@ -1,7 +1,6 @@
 package auth
 
 import (
-	"database/sql"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
@@ -96,14 +95,47 @@ func loginHandler(c *gin.Context, authService *AuthService) {
 	c.JSON(http.StatusOK, gin.H{"message": "Login successful"})
 }
 
-func createUserHandler(c *gin.Context) {
-	db, ok := c.MustGet("db").(*sql.DB)
-	if !ok {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get database connection"})
-		return
-	}
-	userRepo := NewUserRepository(db)
+//func createUserHandler(c *gin.Context) {
+//	db, ok := c.MustGet("db").(*sql.DB)
+//	if !ok {
+//		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get database connection"})
+//		return
+//	}
+//	userRepo := NewUserRepository(db)
+//
+//	var user struct {
+//		Username string `form:"username" json:"username"`
+//		Password string `form:"password" json:"password"`
+//	}
+//
+//	if err := c.ShouldBind(&user); err != nil {
+//		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
+//		return
+//	}
+//
+//	passwordHash, err := hashPassword(user.Password)
+//	if err != nil {
+//		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to hash password"})
+//		return
+//	}
+//
+//	if err := userRepo.CreateUser(user.Username, passwordHash); err != nil {
+//		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user"})
+//		return
+//	}
+//
+//	// Optionally, if you want HTMX to replace part of your page with a response,
+//	// you can return HTML instead of JSON
+//	// For example, to update a "registration message" div:
+//	//c.HTML(http.StatusOK, "registration_success.html", gin.H{
+//	//	"Username": user.Username,
+//	//})
+//
+//	// Or simply return a success message as JSON if that's your preference
+//	c.JSON(http.StatusOK, gin.H{"message": "User created"})
+//}
 
+func createUserHandler(c *gin.Context, authService *AuthService) {
 	var user struct {
 		Username string `form:"username" json:"username"`
 		Password string `form:"password" json:"password"`
@@ -114,25 +146,12 @@ func createUserHandler(c *gin.Context) {
 		return
 	}
 
-	passwordHash, err := hashPassword(user.Password)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to hash password"})
-		return
-	}
-
-	if err := userRepo.CreateUser(user.Username, passwordHash); err != nil {
+	if err := authService.CreateUser(user.Username, user.Password); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user"})
 		return
 	}
 
-	// Optionally, if you want HTMX to replace part of your page with a response,
-	// you can return HTML instead of JSON
-	// For example, to update a "registration message" div:
-	//c.HTML(http.StatusOK, "registration_success.html", gin.H{
-	//	"Username": user.Username,
-	//})
-
-	// Or simply return a success message as JSON if that's your preference
+	// Response
 	c.JSON(http.StatusOK, gin.H{"message": "User created"})
 }
 
