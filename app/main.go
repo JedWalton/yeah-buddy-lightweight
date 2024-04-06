@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"i-couldve-got-six-reps/api/auth"
 	"i-couldve-got-six-reps/api/db"
 	"i-couldve-got-six-reps/api/db/middleware"
 	"i-couldve-got-six-reps/frontend/public/index"
@@ -45,7 +46,7 @@ func initGlobalMiddleware(r *gin.Engine, database *sql.DB) {
 }
 
 func initApi(r *gin.Engine) {
-	index.Init(r)
+	auth.Init(r)
 }
 
 func initFrontend(r *gin.Engine) {
