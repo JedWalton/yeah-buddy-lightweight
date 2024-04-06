@@ -16,6 +16,12 @@ type AuthService struct {
 	UserRepository UserRepository
 }
 
+type authService interface {
+	Login(username, password string) (string, error)
+	Register(username, password string) error
+	AccountInfo(username string) (string, error)
+}
+
 func NewAuthService(r *gin.Engine, database *sql.DB) *AuthService {
 	Init(r)
 	return &AuthService{
@@ -23,8 +29,8 @@ func NewAuthService(r *gin.Engine, database *sql.DB) *AuthService {
 	}
 }
 
-// GenerateJWT generates a JWT token for a given user.
-func GenerateJWT(username string) (string, error) {
+// generateJWT generates a JWT token for a given user.
+func generateJWT(username string) (string, error) {
 	jwtSecret := []byte(os.Getenv("JWT_SECRET"))
 	if jwtSecret == nil || len(jwtSecret) == 0 {
 		log.Println("JWT_SECRET is not set or empty")

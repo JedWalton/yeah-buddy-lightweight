@@ -9,7 +9,7 @@ import (
 	"testing"
 )
 
-// Testing GenerateJWT function
+// Testing generateJWT function
 func TestGenerateJWT(t *testing.T) {
 	// Mocking environment variable
 	os.Setenv("JWT_SECRET", "test_secret_key")
@@ -34,10 +34,10 @@ func TestGenerateJWT(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			token, err := GenerateJWT(tt.username)
+			token, err := generateJWT(tt.username)
 
 			if (err != nil) != tt.wantErr {
-				t.Errorf("GenerateJWT() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("generateJWT() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 

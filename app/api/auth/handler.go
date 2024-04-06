@@ -40,7 +40,7 @@ func loginHandler(c *gin.Context) {
 		return
 	}
 
-	tokenString, err := GenerateJWT(user.Username)
+	tokenString, err := generateJWT(user.Username)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
 		return
