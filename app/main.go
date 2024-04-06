@@ -2,10 +2,10 @@ package main
 
 import (
 	"database/sql"
-	"i-couldve-got-six-reps/app/auth"
-	"i-couldve-got-six-reps/app/db"
-	"i-couldve-got-six-reps/app/db/middleware"
-	"i-couldve-got-six-reps/app/htmx"
+	"i-couldve-got-six-reps/api/auth"
+	"i-couldve-got-six-reps/api/db"
+	"i-couldve-got-six-reps/api/db/middleware"
+	"i-couldve-got-six-reps/frontend/public/index"
 	"os"
 
 	"github.com/gin-gonic/gin"
@@ -13,11 +13,6 @@ import (
 
 func main() {
 	r := gin.Default()
-
-	// Serve the index.html file for the root path
-	r.GET("/", func(c *gin.Context) {
-		c.File("./frontend/index.html")
-	})
 
 	// init database
 	database := db.Init()
@@ -51,7 +46,7 @@ func initGlobalMiddleware(r *gin.Engine, database *sql.DB) {
 
 func initService(r *gin.Engine) {
 	auth.Init(r)
-	htmx.Init(r)
+	index.Init(r)
 	//payment.Init(r)
 	// init other services
 	// ...
