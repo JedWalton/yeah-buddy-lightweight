@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
 	"golang.org/x/crypto/bcrypt"
-	"i-couldve-got-six-reps/api/db"
+	"i-couldve-got-six-reps/app/db"
 	"os"
 	"strings"
 	"testing"

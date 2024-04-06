@@ -2,7 +2,7 @@ package auth
 
 import (
 	"github.com/gin-gonic/gin"
-	"i-couldve-got-six-reps/api/auth/middleware"
+	"i-couldve-got-six-reps/app/auth/middleware"
 	"net/http"
 )
 
