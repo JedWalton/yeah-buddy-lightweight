@@ -1,0 +1,16 @@
+# Use a base node image
+FROM node:18-alpine
+
+WORKDIR /app
+
+# Set environment variable for chokidar (used by Next.js for watching files)
+ENV CHOKIDAR_USEPOLLING=true
+
+# Copy package.json and package-lock.json to utilize Docker cache
+COPY package.json package-lock.json ./
+
+RUN npm install
+
+EXPOSE 3000
+
+CMD ["npm", "run", "dev"]
