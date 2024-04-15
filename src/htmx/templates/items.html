@@ -1,7 +1,19 @@
-<div id="items">
+<div id="content">
+    <!-- Form to add items -->
+    <form hx-post="/add-item" hx-target="#content" hx-swap="outerHTML">
+        <input type="hidden" name="category" value="{{.category}}">
+        <input type="text" name="item" placeholder="Enter item" required>
+        <button type="submit">Add Item</button>
+    </form>
     <ul>
         {{range $index, $item := .items}}
-        <li>{{ $item }} <button hx-post="/delete-item" hx-params="index={{$index}}" hx-target="#items" hx-swap="outerHTML">Delete</button></li>
+        <li>
+            {{ $item }}
+            <!-- Delete form correctly passing category and index -->
+            <form hx-post="/delete-item" hx-params="category={{$.category}},index={{$index}}" hx-target="#content" hx-swap="outerHTML">
+                <button type="submit">Delete</button>
+            </form>
+        </li>
         {{end}}
     </ul>
 </div>

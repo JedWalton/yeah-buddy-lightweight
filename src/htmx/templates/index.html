@@ -8,12 +8,11 @@
 </head>
 <body>
 <h1>Item Manager</h1>
-<form hx-post="/add-item" hx-target="#items" hx-swap="outerHTML">
-    <input type="text" name="item" required>
-    <button type="submit">Add Item</button>
-</form>
-<div id="items" hx-get="/items" hx-trigger="load">
-    <!-- items will be loaded here -->
-</div>
+<nav>
+    <a href="#" hx-get="/items?category=General" hx-target="#content">General</a>
+    <a href="#" hx-get="/items?category=Electronics" hx-target="#content">Electronics</a>
+    <a href="#" hx-get="/items?category=Books" hx-target="#content">Books</a>
+</nav>
+<div id="content" hx-get="/items" hx-trigger="load"></div>
 </body>
 </html>

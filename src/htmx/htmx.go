@@ -2,12 +2,15 @@ package htmx
 
 import (
 	"github.com/gin-gonic/gin"
+	"net/http"
+	"strconv"
+	"strings"
 	"sync"
 )
 
 var (
-	items = []string{} // Slice to store items
-	mutex sync.Mutex   // Mutex to handle concurrent modifications
+	items = make(map[string][]string) // Map to store items by categories
+	mutex sync.Mutex                  // Mutex to handle concurrent modifications
 )
 
 func Init(r *gin.Engine) {
@@ -16,38 +19,56 @@ func Init(r *gin.Engine) {
 		c.File("./htmx/templates/index.html")
 	})
 
-	// HTMX endpoint
-	r.GET("/data", func(c *gin.Context) {
-		c.String(200, "Hello from HTMX and Gin!")
-	})
-
 	r.GET("/items", func(c *gin.Context) {
+		category := c.Query("category")
+		if category == "" {
+			category = "General"
+		}
+		mutex.Lock()
+		itemList, ok := items[category]
+		mutex.Unlock()
+		if !ok {
+			itemList = []string{} // Ensure there is always a slice to pass to the template
+		}
 		c.HTML(200, "items.html", gin.H{
-			"items": items,
+			"category": category,
+			"items":    itemList,
 		})
 	})
 
 	r.POST("/add-item", func(c *gin.Context) {
+		category := c.PostForm("category")
 		item := c.PostForm("item")
 		mutex.Lock()
-		items = append(items, item)
+		items[category] = append(items[category], item)
 		mutex.Unlock()
-		c.Redirect(303, "/items")
+		c.Redirect(303, "/items?category="+category)
 	})
-
 	r.POST("/delete-item", func(c *gin.Context) {
-		index := c.PostForm("index")
-		i := convertToInt(index)
+		category := c.PostForm("category")
+		indexStr := c.PostForm("index")
+		index, err := convertToInt(indexStr)
+		if err != nil {
+			c.String(http.StatusBadRequest, "Invalid index: %v", err)
+			return
+		}
+
 		mutex.Lock()
-		items = append(items[:i], items[i+1:]...)
-		mutex.Unlock()
-		c.Redirect(303, "/items")
+		defer mutex.Unlock()
+
+		if index < 0 || index >= len(items[category]) {
+			c.String(http.StatusBadRequest, "Index out of range")
+			return
+		}
+
+		// Perform the slice operation
+		items[category] = append(items[category][:index], items[category][index+1:]...)
+		c.Redirect(303, "/items?category="+category)
 	})
 
 	r.LoadHTMLGlob("./htmx/templates/*")
 }
 
-func convertToInt(s string) int {
-	// conversion logic here
-	return 0
+func convertToInt(s string) (int, error) {
+	return strconv.Atoi(strings.TrimSpace(s))
 }
