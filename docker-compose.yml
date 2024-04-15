@@ -19,12 +19,12 @@ services:
   application:
     image: application
     build:
-      context: api
+      context: src
       dockerfile: Dockerfile.dev
     ports:
       - '8080:8080'
     volumes:
-      - ./api:/app
+      - ./src:/app
     env_file:
       - ./.env
     depends_on:
