@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gin and HTMX Example</title>
+    <script src="https://unpkg.com/htmx.org"></script>
+</head>
+<body>
+<h1>Item Manager</h1>
+<form hx-post="/add-item" hx-target="#items" hx-swap="outerHTML">
+    <input type="text" name="item" required>
+    <button type="submit">Add Item</button>
+</form>
+<div id="items" hx-get="/items" hx-trigger="load">
+    <!-- items will be loaded here -->
+</div>
+</body>
+</html>

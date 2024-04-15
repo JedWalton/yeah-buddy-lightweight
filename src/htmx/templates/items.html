@@ -1,0 +1,7 @@
+<div id="items">
+    <ul>
+        {{range $index, $item := .items}}
+        <li>{{ $item }} <button hx-post="/delete-item" hx-params="index={{$index}}" hx-target="#items" hx-swap="outerHTML">Delete</button></li>
+        {{end}}
+    </ul>
+</div>
