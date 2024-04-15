@@ -30,20 +30,20 @@ services:
     depends_on:
       - database
 
-  frontend:
-    image: frontend
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile.dev
-    ports:
-      - '3000:3000'
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
-    env_file:
-      - ./.env
-    depends_on:
-      - application
+#  lucidash:
+#    image: lucidash
+#    build:
+#      context: ./frontend/lucidash
+#      dockerfile: Dockerfile.dev
+#    ports:
+#      - '3000:3000'
+#    volumes:
+#      - ./frontend/lucidash:/app
+#      - /app/node_modules
+#    env_file:
+#      - ./.env
+#    depends_on:
+#      - application
 
 volumes:
   database:
