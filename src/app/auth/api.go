@@ -1,9 +1,10 @@
 package auth
 
 import (
-	"github.com/gin-gonic/gin"
 	"i-couldve-got-six-reps/app/auth/middleware"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
 
 func Init(r *gin.Engine, authService *AuthService) {

@@ -1,11 +1,12 @@
 package htmx
 
 import (
-	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
 	"strings"
 	"sync"
+
+	"github.com/gin-gonic/gin"
 )
 
 var (
@@ -44,6 +45,7 @@ func Init(r *gin.Engine) {
 		mutex.Unlock()
 		c.Redirect(303, "/items?category="+category)
 	})
+
 	r.POST("/delete-item", func(c *gin.Context) {
 		category := c.PostForm("category")
 		indexStr := c.PostForm("index")
