@@ -30,20 +30,22 @@ services:
     depends_on:
       - database
 
-#  lucidash:
-#    image: lucidash
-#    build:
-#      context: ./frontend/lucidash
-#      dockerfile: Dockerfile.dev
-#    ports:
-#      - '3000:3000'
-#    volumes:
-#      - ./frontend/lucidash:/app
-#      - /app/node_modules
-#    env_file:
-#      - ./.env
-#    depends_on:
-#      - application
+  # Svelte app
+  frontend:
+   image: frontend 
+   build:
+     context: src/frontend/app
+     dockerfile: Dockerfile.dev
+   ports:
+     - '3000:5173'
+   volumes:
+     - ./src/frontend/app:/app
+     - /app/node_modules
+   env_file:
+     - ./.env
+   depends_on:
+     - database
+     - backend
 
 volumes:
   database:
