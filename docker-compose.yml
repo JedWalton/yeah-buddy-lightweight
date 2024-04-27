@@ -38,7 +38,6 @@ services:
      dockerfile: Dockerfile.dev
    ports:
      - '5173:5173'
-     - '3000:3000'
    volumes:
      - ./src/frontend/app:/app
      - /app/node_modules
@@ -47,6 +46,24 @@ services:
    depends_on:
      - database
      - backend
+
+  # Svelte app
+  frontend-react:
+   image: frontend-react
+   build:
+     context: src/frontend/react-app
+     dockerfile: Dockerfile.dev
+   ports:
+     - '3000:3000'
+   volumes:
+     - ./src/frontend/react-app:/app
+     - /app/node_modules
+   env_file:
+     - ./.env
+   depends_on:
+     - database
+     - backend
+
 
 volumes:
   database:
