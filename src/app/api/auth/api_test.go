@@ -37,7 +37,7 @@ func TestLoginHandler(t *testing.T) {
 	/* Test login user not exist */
 	// Create a request to pass to our handler.
 	var jsonStr = []byte(fmt.Sprintf(`{"username":"%s", "password":"%s"}`, username, password))
-	req, err := http.NewRequest("POST", "/auth/public/login", bytes.NewBuffer(jsonStr))
+	req, err := http.NewRequest("POST", "/api/auth/login", bytes.NewBuffer(jsonStr))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -62,7 +62,7 @@ func TestLoginHandler(t *testing.T) {
 	formData := url.Values{}
 	formData.Set("username", username)
 	formData.Set("password", "wrongPassword")
-	req, err = http.NewRequest("POST", "/auth/public/login", strings.NewReader(formData.Encode()))
+	req, err = http.NewRequest("POST", "/api/auth/login", strings.NewReader(formData.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	// Record the response
@@ -80,7 +80,7 @@ func TestLoginHandler(t *testing.T) {
 	formData = url.Values{}
 	formData.Set("username", username)
 	formData.Set("password", password)
-	req, err = http.NewRequest("POST", "/auth/public/login", strings.NewReader(formData.Encode()))
+	req, err = http.NewRequest("POST", "/api/auth/login", strings.NewReader(formData.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	// Record the response
@@ -132,7 +132,7 @@ func TestCreateUserHandler(t *testing.T) {
 
 	// Create a request to pass to our handler.
 	var jsonStr = []byte(fmt.Sprintf(`{"username":"%s", "password":"%s"}`, username, passwordHash))
-	req, err := http.NewRequest("POST", "/auth/public/create", bytes.NewBuffer(jsonStr))
+	req, err := http.NewRequest("POST", "/api/auth/create", bytes.NewBuffer(jsonStr))
 	if err != nil {
 		t.Fatal(err)
 	}

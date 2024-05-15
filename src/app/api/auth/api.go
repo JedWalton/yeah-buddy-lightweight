@@ -13,7 +13,7 @@ func Init(r *gin.Engine, authService *AuthService) {
 }
 
 func initPublic(r *gin.Engine, authService *AuthService) {
-	public := r.Group("/auth/public")
+	public := r.Group("/api/auth")
 	login(public, authService)
 	createUser(public, authService)
 }
