@@ -11,7 +11,6 @@ import (
 func Init() *sql.DB {
 	// Use environment variables
 	postgresURL := os.Getenv("POSTGRESQL_URL")
-	log.Printf("Connecting to PostgreSQL")
 
 	db, err := sql.Open("postgres", postgresURL)
 	if err != nil {
@@ -22,6 +21,7 @@ func Init() *sql.DB {
 	if err != nil {
 		log.Fatal("Failed to open connection to postgres", err)
 	}
+
 	log.Printf("Connected to PostgreSQL")
 
 	return db

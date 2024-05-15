@@ -15,34 +15,19 @@ services:
       timeout: 5s
       retries: 5
 
-  ## Go Server
-  backend:
-    image: backend
+  application:
+    image: application
     build:
-      context: src/backend
+      context: src/app
       dockerfile: Dockerfile.dev
     ports:
       - '8080:8080'
     volumes:
-      - ./src/backend:/app
+      - ./src/app:/app
     env_file:
       - ./.env
     depends_on:
       - database
-
-  frontend-react:
-   image: frontend-react
-   build:
-     context: src/frontend/react-app
-     dockerfile: Dockerfile.dev
-   ports:
-     - '3000:3000'
-   volumes:
-     - ./src/frontend/react-app:/app
-   env_file:
-     - ./.env
-   depends_on:
-     - backend
 
 volumes:
   database:

@@ -1,7 +1,7 @@
 package auth
 
 import (
-	"i-couldve-got-six-reps/app/db"
+	"i-couldve-got-six-reps/api/db"
 	"testing"
 )
 

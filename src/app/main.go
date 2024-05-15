@@ -2,8 +2,8 @@ package main
 
 import (
 	"database/sql"
-	"i-couldve-got-six-reps/app/auth"
-	"i-couldve-got-six-reps/app/db"
+	"i-couldve-got-six-reps/api/auth"
+	"i-couldve-got-six-reps/api/db"
 	"os"
 
 	"github.com/gin-gonic/gin"

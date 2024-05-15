@@ -3,7 +3,7 @@ package auth
 import (
 	"bytes"
 	"fmt"
-	"i-couldve-got-six-reps/app/db"
+	"i-couldve-got-six-reps/api/db"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
