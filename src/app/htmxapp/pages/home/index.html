@@ -11,43 +11,49 @@
 </head>
 <body class="bg-gray-100 text-gray-900">
 
-<!-- Hero Section Placeholder -->
-<div class="hero min-h-screen bg-base-200">
-    <div class="hero-content text-center">
-        <div class="max-w-lg">
-            <h1 class="text-5xl font-bold">Welcome!</h1>
-            <p class="py-6">This is a customizable template using DaisyUI components with HTMX functionality.</p>
-            <button class="btn btn-primary" hx-get="/home/hello" hx-trigger="click" hx-target="#response-area" hx-swap="outerHTML">Click Me</button>
+<div class="navbar bg-base-100">
+    <div class="navbar-start">
+        <div class="dropdown">
+            <div tabindex="0" role="button" class="btn btn-ghost lg:hidden">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                     stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h8m-8 6h16"/>
+                </svg>
+            </div>
+            <ul tabindex="0" class="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52">
+                <li><a>Item 1</a></li>
+                <li>
+                    <a>Parent</a>
+                    <ul class="p-2">
+                        <li><a>Submenu 1</a></li>
+                        <li><a>Submenu 2</a></li>
+                    </ul>
+                </li>
+                <li><a>Item 3</a></li>
+            </ul>
         </div>
+        <a class="btn btn-ghost text-xl">daisyUI</a>
+    </div>
+    <div class="navbar-center hidden lg:flex">
+        <ul class="menu menu-horizontal px-1">
+            <li><a>Item 1</a></li>
+            <li>
+                <details>
+                    <summary>Parent</summary>
+                    <ul class="p-2">
+                        <li><a>Submenu 1</a></li>
+                        <li><a>Submenu 2</a></li>
+                    </ul>
+                </details>
+            </li>
+            <li><a>Item 3</a></li>
+        </ul>
+    </div>
+    <div class="navbar-end">
+        <button class="btn btn-primary" hx-get="/home/hello" hx-trigger="click" hx-target="#response-area"
+                hx-swap="outerHTML">Click Me
+        </button>
     </div>
 </div>
-
-<!-- Response Area for HTMX -->
-<div id="response-area" class="p-5">
-    <!-- HTMX will update this div's content based on interactions. -->
-</div>
-
-<!-- Additional Components Placeholder -->
-<section class="container mx-auto text-center p-6">
-    <h2 class="text-3xl font-bold">More Components</h2>
-    <!-- You can add more DaisyUI components here -->
-</section>
-
-<!-- Footer -->
-<footer class="footer p-10 bg-base-300 text-base-content">
-    <div>
-        <span class="footer-title">Services</span>
-        <!-- List your services or links here -->
-    </div>
-    <div>
-        <span class="footer-title">Company</span>
-        <!-- Company information or links -->
-    </div>
-    <div>
-        <span class="footer-title">Legal</span>
-        <!-- Legal links or information -->
-    </div>
-</footer>
-
 </body>
 </html>
