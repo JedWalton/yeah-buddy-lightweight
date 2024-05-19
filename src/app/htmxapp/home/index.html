@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{.title}}</title>
+    <script src="https://cdn.jsdelivr.net/npm/htmx.org/dist/htmx.min.js"></script>
+</head>
+<body>
+<h1>Hello, World!</h1>
+<button hx-get="/hello" hx-trigger="click" hx-target="#message" hx-swap="innerHTML">
+    Say Hello
+</button>
+<div id="message"></div>
+</body>
+</html>

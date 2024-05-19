@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"i-couldve-got-six-reps/api/auth"
 	"i-couldve-got-six-reps/api/db"
+	"i-couldve-got-six-reps/htmxapp"
 	"os"
 
 	"github.com/gin-gonic/gin"
@@ -22,6 +23,7 @@ func main() {
 	}(database)
 
 	initApi(r, database)
+	htmxapp.InitHtmxApp(r)
 
 	port := os.Getenv("PORT") // Get the PORT environment variable
 	if port == "" {
