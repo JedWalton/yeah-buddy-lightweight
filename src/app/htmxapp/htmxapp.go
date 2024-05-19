@@ -1,0 +1,5 @@
+package htmxapp
+
+func InitHtmxApp() {
+
+}
