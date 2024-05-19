@@ -14,7 +14,7 @@ func Init(r *gin.Engine) {
 	})
 
 	// HTMX endpoint to handle the dynamic content loading from an external HTML file
-	r.GET("/hello", func(c *gin.Context) {
+	r.GET("/home/hello", func(c *gin.Context) {
 		c.HTML(http.StatusOK, "hello.html", nil)
 	})
 }

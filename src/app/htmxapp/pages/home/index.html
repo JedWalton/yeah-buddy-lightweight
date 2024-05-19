@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customizable DaisyUI Page</title>
+    <!-- TailwindCSS and DaisyUI combined CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@latest/dist/full.css" rel="stylesheet">
+    <!-- HTMX for interactive functionality -->
+    <script src="https://cdn.jsdelivr.net/npm/htmx.org/dist/htmx.min.js"></script>
+</head>
+<body class="bg-gray-100 text-gray-900">
+
+<!-- Hero Section Placeholder -->
+<div class="hero min-h-screen bg-base-200">
+    <div class="hero-content text-center">
+        <div class="max-w-lg">
+            <h1 class="text-5xl font-bold">Welcome!</h1>
+            <p class="py-6">This is a customizable template using DaisyUI components with HTMX functionality.</p>
+            <button class="btn btn-primary" hx-get="/home/hello" hx-trigger="click" hx-target="#response-area" hx-swap="outerHTML">Click Me</button>
+        </div>
+    </div>
+</div>
+
+<!-- Response Area for HTMX -->
+<div id="response-area" class="p-5">
+    <!-- HTMX will update this div's content based on interactions. -->
+</div>
+
+<!-- Additional Components Placeholder -->
+<section class="container mx-auto text-center p-6">
+    <h2 class="text-3xl font-bold">More Components</h2>
+    <!-- You can add more DaisyUI components here -->
+</section>
+
+<!-- Footer -->
+<footer class="footer p-10 bg-base-300 text-base-content">
+    <div>
+        <span class="footer-title">Services</span>
+        <!-- List your services or links here -->
+    </div>
+    <div>
+        <span class="footer-title">Company</span>
+        <!-- Company information or links -->
+    </div>
+    <div>
+        <span class="footer-title">Legal</span>
+        <!-- Legal links or information -->
+    </div>
+</footer>
+
+</body>
+</html>
