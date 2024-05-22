@@ -1,39 +1,44 @@
 package uptimechecker
 
 import (
+	"database/sql"
 	uptimechecker "i-couldve-got-six-reps/api/uptimechecker/data"
 	"log"
+
+	"github.com/robfig/cron/v3"
 )
 
 type UptimeService struct {
 	repo uptimechecker.Repository
+	cron *cron.Cron // Add a cron field to manage the lifecycle of the cron scheduler
 }
 
-func NewUptimeService(repo uptimechecker.Repository) *UptimeService {
-	return &UptimeService{repo: repo}
+func NewUptimeService(database *sql.DB) *UptimeService {
+	repo := uptimechecker.NewUptimeCheckerRepository(database)
+	return &UptimeService{
+		repo: repo,
+		cron: cron.New(cron.WithSeconds()), // Initialize the cron with second precision
+	}
 }
 
-// Example setup function that could be added to a main.go
-func (s *UptimeService) startUptimeService() {
+func (s *UptimeService) StartUptimeService() {
 	s.ScheduleEndpointChecks() // Start scheduled monitoring
+	s.cron.Start()             // Start the cron scheduler
 }
 
-// Assuming cron-like scheduling is set up externally or using a Go library
 func (s *UptimeService) ScheduleEndpointChecks() {
-	// This method would be called to setup the periodic checks
-	cronSchedule := "@every 30s" // using a cron expression for every 30 seconds
-	err := s.schedule(cronSchedule, s.CheckAllEndpoints)
+	// Setup the periodic checks
+	cronSchedule := "@every 30s" // Using a cron expression for every 30 seconds
+	_, err := s.schedule(cronSchedule, s.CheckAllEndpoints)
 	if err != nil {
 		log.Printf("Failed to schedule endpoint checks: %v", err)
 	}
 }
 
-// Assuming a hypothetical function for setting up schedules
-func (s *UptimeService) schedule(spec string, job func()) error {
-	// This would use a third-party library to schedule tasks
-	// Example using robfig/cron:
-	// c := cron.New()
-	// c.AddFunc(spec, job)
-	// c.Start()
-	return nil
+func (s *UptimeService) schedule(spec string, job func()) (cron.EntryID, error) {
+	return s.cron.AddFunc(spec, job) // Schedule the job with the cron expression
+}
+
+func (s *UptimeService) Stop() {
+	s.cron.Stop() // Stop the cron scheduler
 }

@@ -10,7 +10,10 @@ require (
 	golang.org/x/crypto v0.19.0
 )
 
-require github.com/sendgrid/rest v2.6.9+incompatible // indirect
+require (
+	github.com/robfig/cron/v3 v3.0.0 // indirect
+	github.com/sendgrid/rest v2.6.9+incompatible // indirect
+)
 
 require (
 	github.com/bytedance/sonic v1.9.1 // indirect
