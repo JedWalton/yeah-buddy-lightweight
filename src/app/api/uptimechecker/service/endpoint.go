@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"i-couldve-got-six-reps/api/uptimechecker/types"
 	"log"
+	"net/http"
 	"time"
 )
 
@@ -34,14 +35,26 @@ func (s *UptimeService) CheckEndpointUptime(endpointId int) error {
 }
 
 func (s *UptimeService) pingEndpoint(url string) (statusCode int, responseTime int, isUp bool) {
-	// This function should perform an actual HTTP GET request to the URL
-	// and measure the response time and status code. Stubbed for example.
+	// Start the timer to measure the response time
 	start := time.Now()
-	// Simulate a request
-	time.Sleep(time.Millisecond * 100) // Simulated delay
-	duration := time.Since(start)
 
-	return 200, int(duration.Milliseconds()), true
+	// Perform the HTTP GET request
+	resp, err := http.Get(url)
+	if err != nil {
+		// If there's an error, we consider the endpoint down
+		return 0, 0, false
+	}
+	defer resp.Body.Close()
+
+	// Calculate the response time
+	duration := time.Since(start)
+	responseTime = int(duration.Milliseconds())
+
+	// Check if the HTTP status code is in the range of 200-299
+	isUp = resp.StatusCode >= 200 && resp.StatusCode <= 299
+	statusCode = resp.StatusCode
+
+	return statusCode, responseTime, isUp
 }
 
 func (s *UptimeService) CheckAllEndpoints() {

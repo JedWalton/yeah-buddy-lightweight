@@ -1,6 +1,8 @@
 package uptimechecker
 
-import "i-couldve-got-six-reps/api/uptimechecker/types"
+import (
+	"i-couldve-got-six-reps/api/uptimechecker/types"
+)
 
 // Application Management
 func (r *Repository) CreateApplication(name, description string) (int, error) {

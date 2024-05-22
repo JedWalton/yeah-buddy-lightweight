@@ -8,7 +8,7 @@ import (
 // Notification Channel Management
 func (r *Repository) AddNotificationChannel(applicationId int, typeStr string, details string) (int, error) {
 	var channelId int
-	query := `INSERT INTO types.NotificationChannels (application_id, type, details, is_active) VALUES ($1, $2, $3, true) RETURNING channel_id`
+	query := `INSERT INTO NotificationChannels (application_id, type, details, is_active) VALUES ($1, $2, $3, true) RETURNING channel_id`
 	err := r.DB.QueryRow(query, applicationId, typeStr, details).Scan(&channelId)
 	if err != nil {
 		return 0, err
