@@ -12,7 +12,7 @@ import (
 )
 
 type AuthService struct {
-	userRepo UserRepository
+	userRepo Repository
 }
 
 func NewAuthService(database *sql.DB) *AuthService {
