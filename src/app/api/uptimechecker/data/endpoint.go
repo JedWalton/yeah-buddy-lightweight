@@ -9,10 +9,17 @@ import (
 func (r *Repository) AddEndpoint(applicationId int, url string, monitoringInterval int) (int, error) {
 	var endpointId int
 	query := `INSERT INTO Endpoints (application_id, url, monitoring_interval) VALUES ($1, $2, $3) RETURNING endpoint_id`
+
+	log.Printf("Executing query: %s with applicationId: %d, url: %s, monitoringInterval: %d", query, applicationId, url, monitoringInterval)
+
 	err := r.DB.QueryRow(query, applicationId, url, monitoringInterval).Scan(&endpointId)
+
 	if err != nil {
+		log.Printf("Error inserting endpoint: %v", err)
 		return 0, err
 	}
+
+	log.Printf("Successfully added new endpoint with ID: %d, URL: %s, Monitoring Interval: %d", endpointId, url, monitoringInterval)
 	return endpointId, nil
 }
 

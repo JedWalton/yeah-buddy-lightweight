@@ -41,8 +41,12 @@ func initApi(r *gin.Engine, database *sql.DB) {
 	authService := auth.NewAuthService(database)
 	auth.Init(r, authService)
 
-	// Add the uptimechecker service initialization here
-	uptimeService := uptimechecker.NewUptimeService(database)
-	uptimeService.StartUptimeService()
-
+	if os.Getenv("GIN_MODE") == "debug" {
+		uptimeService := uptimechecker.NewUptimeService(database)
+		uptimeService.StartUptimeServiceDev()
+		return
+	} else {
+		uptimeService := uptimechecker.NewUptimeService(database)
+		uptimeService.StartUptimeService()
+	}
 }

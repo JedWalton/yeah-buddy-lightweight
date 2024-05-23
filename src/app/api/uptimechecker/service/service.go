@@ -26,6 +26,26 @@ func (s *UptimeService) StartUptimeService() {
 	s.cron.Start()             // Start the cron scheduler
 }
 
+func (s *UptimeService) StartUptimeServiceDev() {
+	isActive := true
+	url := "https://lobster-app-dliao.ondigitalocean.app/"
+	monitoringInterval := 10
+	applicationId, err := s.CreateNewApplication("My Application", "This is my application")
+	applicationId2, err := s.CreateNewApplication("My Application2", "This is my application2")
+	if err != nil {
+		return
+	} // Create a new application
+	endpointId, err := s.RegisterNewEndpoint(applicationId, "https://lobster-app-dliao.ondigitalocean.app/", 30)
+	endpointId2, err := s.RegisterNewEndpoint(applicationId2, "https://lobster-app-dliao.ondigitalocean.app/", 30)
+	if err != nil {
+		return
+	} // Register a new endpoint
+	err = s.ActivateEndpoint(endpointId, url, monitoringInterval, isActive)
+	err = s.ActivateEndpoint(endpointId2, url, monitoringInterval, isActive)
+	s.ScheduleEndpointChecks() // Start scheduled monitoring
+	s.cron.Start()             // Start the cron scheduler
+}
+
 func (s *UptimeService) ScheduleEndpointChecks() {
 	// Setup the periodic checks
 	cronSchedule := "@every 30s" // Using a cron expression for every 30 seconds

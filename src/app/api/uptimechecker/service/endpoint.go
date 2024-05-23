@@ -21,8 +21,8 @@ func (s *UptimeService) DeactivateEndpoint(endpointId int) error {
 	return s.repo.UpdateEndpoint(endpointId, "", 0, false)
 }
 
-func (s *UptimeService) ActivateEndpoint(endpointId int) error {
-	return s.repo.UpdateEndpoint(endpointId, "", 0, true)
+func (s *UptimeService) ActivateEndpoint(endpointId int, url string, monitoringInterval int, isActive bool) error {
+	return s.repo.UpdateEndpoint(endpointId, url, monitoringInterval, isActive)
 }
 
 func (s *UptimeService) CheckEndpointUptime(endpointId int) error {
@@ -31,6 +31,7 @@ func (s *UptimeService) CheckEndpointUptime(endpointId int) error {
 		return err
 	}
 	statusCode, responseTime, isUp := s.pingEndpoint(endpoint.URL)
+	log.Printf("Endpoint %d is up: %v, status code: %d, response time: %dms", endpointId, isUp, statusCode, responseTime)
 	return s.repo.LogUptime(endpointId, statusCode, responseTime, isUp)
 }
 

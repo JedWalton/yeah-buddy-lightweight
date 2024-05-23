@@ -16,10 +16,10 @@ func TestRecordAlert(t *testing.T) {
 	repo := NewUptimeCheckerRepository(db)
 
 	// First, create necessary entries for the test to satisfy foreign key constraints
-	applicationId, err := repo.CreateApplication("Test App", "A test application")
+	applicationId, err := repo.CreateApplication("TestRecordAlert", "TestRecordAlert test application")
 	assert.NoError(t, err, "Failed to create application")
 
-	channelId, err := repo.AddNotificationChannel(applicationId, "Email", "{\"email\":\"test@example.com\"}")
+	channelId, err := repo.AddNotificationChannel(applicationId, "Email", "{\"email\":\"test@recordalert.com\"}")
 	assert.NoError(t, err, "Failed to add notification channel")
 
 	endpointId, err := repo.AddEndpoint(applicationId, "http://example.com", 30)
@@ -36,6 +36,11 @@ func TestRecordAlert(t *testing.T) {
 	err = db.QueryRow(query, channelId, endpointId, message).Scan(&count)
 	assert.NoError(t, err, "Failed to query alert")
 	assert.Equal(t, 1, count, "Alert record not found")
+
+	// Clean up
+	repo.DeleteApplication(applicationId)
+	repo.DeleteNotificationChannel(channelId)
+	repo.DeleteEndpoint(endpointId)
 }
 
 // Additional test implementations can be added here to cover all other repository functions.
