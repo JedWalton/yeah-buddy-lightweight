@@ -43,13 +43,18 @@ func (s *AuthService) AuthenticateUser(username, password string) (string, error
 	return tokenString, nil
 }
 
-func (s *AuthService) CreateUser(username, password string) error {
+func (s *AuthService) CreateUser(username, password string) (int, error) {
 	passwordHash, err := hashPassword(password)
 	if err != nil {
-		return err
+		return 0, err
 	}
 
-	return s.userRepo.CreateUser(username, passwordHash)
+	userId, err := s.userRepo.CreateUser(username, passwordHash)
+	if err != nil {
+		return 0, err
+	}
+
+	return userId, nil
 }
 
 func (s *AuthService) DeleteUser(username string) error {

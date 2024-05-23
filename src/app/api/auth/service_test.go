@@ -25,7 +25,7 @@ func TestCreateAndAuthenticateUser(t *testing.T) {
 	}
 
 	// Create a user
-	err = authService.CreateUser(username, password)
+	_, err = authService.CreateUser(username, password)
 	if err != nil {
 		t.Fatalf("Could not create user: %v", err)
 	}
@@ -70,7 +70,7 @@ func TestDeleteUser(t *testing.T) {
 	username := "testDeleteUser"
 	password := "testDeleteUserPassword"
 
-	err := authService.CreateUser(username, password)
+	_, err := authService.CreateUser(username, password)
 	if err != nil {
 		t.Fatalf("Could not create user: %v", err)
 	}

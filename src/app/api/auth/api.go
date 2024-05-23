@@ -76,7 +76,7 @@ func createUserHandler(c *gin.Context, authService *AuthService) {
 		return
 	}
 
-	if err := authService.CreateUser(user.Username, user.Password); err != nil {
+	if _, err := authService.CreateUser(user.Username, user.Password); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user"})
 		return
 	}

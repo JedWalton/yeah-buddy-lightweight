@@ -52,7 +52,7 @@ func TestLoginHandler(t *testing.T) {
 		t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusUnauthorized)
 	}
 
-	err = authService.userRepo.CreateUser(username, passwordHash)
+	_, err = authService.userRepo.CreateUser(username, passwordHash)
 	if err != nil {
 		return
 	}

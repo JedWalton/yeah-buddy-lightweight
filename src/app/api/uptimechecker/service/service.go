@@ -2,6 +2,7 @@ package uptimechecker
 
 import (
 	"database/sql"
+	"i-couldve-got-six-reps/api/auth"
 	uptimechecker "i-couldve-got-six-reps/api/uptimechecker/data"
 	"log"
 
@@ -22,16 +23,21 @@ func NewUptimeService(database *sql.DB) *UptimeService {
 }
 
 func (s *UptimeService) StartUptimeService() {
-	s.ScheduleEndpointChecks() // Start scheduled monitoring
+	s.scheduleEndpointChecks() // Start scheduled monitoring
 	s.cron.Start()             // Start the cron scheduler
 }
 
 func (s *UptimeService) StartUptimeServiceDev() {
+	db := s.repo.DB
+	defer db.Close()
+	userRepo := auth.NewUserRepository(db)
+	userIdOne, _ := userRepo.CreateUser("1) Dev User One", "passwordHash")
+	userIdTwo, _ := userRepo.CreateUser("2) Dev User Two", "passwordHash")
 	isActive := true
 	url := "https://lobster-app-dliao.ondigitalocean.app/"
 	monitoringInterval := 10
-	applicationId, err := s.CreateNewApplication("My Application", "This is my application")
-	applicationId2, err := s.CreateNewApplication("My Application2", "This is my application2")
+	applicationId, err := s.CreateNewApplication(userIdOne, "1) Dev Application", "Dev application")
+	applicationId2, err := s.CreateNewApplication(userIdTwo, "2) Dev Application 2", "Dev application 2")
 	if err != nil {
 		return
 	} // Create a new application
@@ -42,11 +48,11 @@ func (s *UptimeService) StartUptimeServiceDev() {
 	} // Register a new endpoint
 	err = s.ActivateEndpoint(endpointId, url, monitoringInterval, isActive)
 	err = s.ActivateEndpoint(endpointId2, url, monitoringInterval, isActive)
-	s.ScheduleEndpointChecks() // Start scheduled monitoring
+	s.scheduleEndpointChecks() // Start scheduled monitoring
 	s.cron.Start()             // Start the cron scheduler
 }
 
-func (s *UptimeService) ScheduleEndpointChecks() {
+func (s *UptimeService) scheduleEndpointChecks() {
 	// Setup the periodic checks
 	cronSchedule := "@every 30s" // Using a cron expression for every 30 seconds
 	_, err := s.schedule(cronSchedule, s.CheckAllEndpoints)

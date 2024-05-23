@@ -5,10 +5,12 @@ import (
 )
 
 // Application Management
-func (r *Repository) CreateApplication(name, description string) (int, error) {
+func (r *Repository) CreateApplication(userId int, name, description string) (int, error) {
 	var applicationId int
-	query := `INSERT INTO Applications (name, description) VALUES ($1, $2) RETURNING application_id`
-	err := r.DB.QueryRow(query, name, description).Scan(&applicationId)
+	// Include the userId in the SQL INSERT statement
+	query := `INSERT INTO Applications (user_id, name, description) VALUES ($1, $2, $3) RETURNING application_id`
+	// Pass the userId along with name and description to the QueryRow function
+	err := r.DB.QueryRow(query, userId, name, description).Scan(&applicationId)
 	if err != nil {
 		return 0, err
 	}

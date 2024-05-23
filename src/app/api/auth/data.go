@@ -23,16 +23,26 @@ func (repo *Repository) GetUserByUsername(username string) (*dtos.User, error) {
 	return &user, nil
 }
 
-func (repo *Repository) CreateUser(username, passwordHash string) error {
-	_, err := repo.DB.Exec("INSERT INTO users (username, password_hash) VALUES ($1, $2)", username, passwordHash)
+func (repo *Repository) CreateUser(username, passwordHash string) (int, error) {
+	var userId int
+	// The RETURNING clause returns the id of the inserted user
+	err := repo.DB.QueryRow("INSERT INTO users (username, password_hash) VALUES ($1, $2) RETURNING id", username, passwordHash).Scan(&userId)
+	if err != nil {
+		return 0, err
+	}
+	return userId, nil
+}
+
+func (repo *Repository) DeleteUser(username string) error {
+	_, err := repo.DB.Exec("DELETE FROM users where username = $1", username)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (repo *Repository) DeleteUser(username string) error {
-	_, err := repo.DB.Exec("DELETE FROM users where username = $1", username)
+func (repo *Repository) DeleteUserById(id int) error {
+	_, err := repo.DB.Exec("DELETE FROM users where id = $1", id)
 	if err != nil {
 		return err
 	}

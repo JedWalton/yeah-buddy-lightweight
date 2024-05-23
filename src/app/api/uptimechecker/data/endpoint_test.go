@@ -2,6 +2,7 @@ package uptimechecker
 
 import (
 	"github.com/stretchr/testify/assert"
+	"i-couldve-got-six-reps/api/auth"
 	"i-couldve-got-six-reps/api/db"
 
 	"testing"
@@ -12,11 +13,13 @@ func TestAddEndpoint(t *testing.T) {
 	database := db.Init()
 	defer database.Close()
 
+	userRepo := auth.NewUserRepository(database)
+	userId, _ := userRepo.CreateUser("1) Test Create Application User One", "passwordHash")
 	// Initialize the repository
 	repo := NewUptimeCheckerRepository(database)
 
 	// First, create necessary entries for the test to satisfy foreign key constraints
-	applicationId, err := repo.CreateApplication("TestRecordAlert", "TestRecordAlert test application")
+	applicationId, err := repo.CreateApplication(userId, "TestRecordAlert", "TestRecordAlert test application")
 	assert.NoError(t, err, "Failed to create application")
 	// Test data
 	url := "http://TestAddEndpoint.com"
@@ -55,5 +58,5 @@ func TestAddEndpoint(t *testing.T) {
 		t.Errorf("Expected monitoring interval to match, got %d", actualMonitoringInterval)
 	}
 
-	repo.DeleteApplication(applicationId)
+	userRepo.DeleteUserById(userId)
 }

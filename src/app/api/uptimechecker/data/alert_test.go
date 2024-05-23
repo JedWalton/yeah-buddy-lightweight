@@ -1,6 +1,7 @@
 package uptimechecker
 
 import (
+	"i-couldve-got-six-reps/api/auth"
 	"i-couldve-got-six-reps/api/db"
 	"testing"
 
@@ -14,9 +15,15 @@ func TestRecordAlert(t *testing.T) {
 	defer db.Close()
 
 	repo := NewUptimeCheckerRepository(db)
+	userrepo := auth.NewUserRepository(db)
 
-	// First, create necessary entries for the test to satisfy foreign key constraints
-	applicationId, err := repo.CreateApplication("TestRecordAlert", "TestRecordAlert test application")
+	// Create a user to associate with the application
+	userId, err := userrepo.CreateUser("testuser", "passwordHash")
+	assert.NoError(t, err, "Failed to create user")
+
+	// Create necessary entries for the test to satisfy foreign key constraints
+	applicationId, err := repo.CreateApplication(userId, "TestRecordAlert",
+		"TestRecordAlert test application")
 	assert.NoError(t, err, "Failed to create application")
 
 	channelId, err := repo.AddNotificationChannel(applicationId, "Email", "{\"email\":\"test@recordalert.com\"}")
@@ -38,9 +45,7 @@ func TestRecordAlert(t *testing.T) {
 	assert.Equal(t, 1, count, "Alert record not found")
 
 	// Clean up
-	repo.DeleteApplication(applicationId)
-	repo.DeleteNotificationChannel(channelId)
-	repo.DeleteEndpoint(endpointId)
+	userrepo.DeleteUserById(userId) // Assuming DeleteUser also cascades to delete applications and other dependent records
 }
 
 // Additional test implementations can be added here to cover all other repository functions.

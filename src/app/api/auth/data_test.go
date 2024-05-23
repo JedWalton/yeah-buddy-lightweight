@@ -50,7 +50,7 @@ func TestUserRepository_CreateUser(t *testing.T) {
 	}
 
 	// Test CreateUser function
-	err = repo.CreateUser(username, passwordHash)
+	_, err = repo.CreateUser(username, passwordHash)
 	if err != nil {
 		t.Errorf("CreateUser failed: %v", err)
 	}
@@ -86,7 +86,7 @@ func TestUserRepository_DeleteUser(t *testing.T) {
 	}
 
 	// Test CreateUser function
-	err = repo.CreateUser(username, passwordHash)
+	_, err = repo.CreateUser(username, passwordHash)
 	if err != nil {
 		t.Errorf("CreateUser failed: %v", err)
 	}
