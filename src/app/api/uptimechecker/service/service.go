@@ -29,7 +29,6 @@ func (s *UptimeService) StartUptimeService() {
 
 func (s *UptimeService) StartUptimeServiceDev() {
 	db := s.repo.DB
-	defer db.Close()
 	userRepo := auth.NewUserRepository(db)
 	userIdOne, _ := userRepo.CreateUser("1) Dev User One", "passwordHash")
 	userIdTwo, _ := userRepo.CreateUser("2) Dev User Two", "passwordHash")
