@@ -6,6 +6,7 @@ import (
 	"i-couldve-got-six-reps/api/db"
 	uptimechecker "i-couldve-got-six-reps/api/uptimechecker/service"
 	"i-couldve-got-six-reps/htmxapp"
+	"log"
 	"os"
 
 	"github.com/gin-gonic/gin"
@@ -44,6 +45,7 @@ func initApi(r *gin.Engine, database *sql.DB) {
 	if os.Getenv("GIN_MODE") == "debug" {
 		uptimeService := uptimechecker.NewUptimeService(database)
 		uptimeService.StartUptimeServiceDev()
+		log.Print("Uptime service started in dev mode")
 		return
 	} else {
 		uptimeService := uptimechecker.NewUptimeService(database)

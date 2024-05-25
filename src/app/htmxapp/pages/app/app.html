@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Dynamic Graph with HTMX</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/htmx.org"></script>
+</head>
+<body>
+<div id="graph-container">
+    <canvas id="myChart" width="400" height="400"></canvas>
+    <button hx-get="/graph-data" hx-trigger="every 0.1s" hx-swap="none" hx-target="#myChart" hx-include="#myChart">Update Graph</button>
+</div>
+
+<script>
+    const ctx = document.getElementById('myChart').getContext('2d');
+    const myChart = new Chart(ctx, {
+        type: 'bar', // or 'bar', 'pie', etc.
+        data: {
+            labels: [], // Initialize empty, or with some starting labels
+            datasets: [{
+                label: 'Data Value',
+                data: [], // Initialize empty
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+    document.body.addEventListener('htmx:afterRequest', function(event) {
+        fetch('/graph-data')
+            .then(response => response.json())
+            .then(data => {
+                myChart.data.labels.push(new Date().toISOString());
+                myChart.data.datasets.forEach((dataset) => {
+                    dataset.data.push(data.value);
+                });
+                myChart.update();
+            });
+    });
+</script>
+</body>
+</html>

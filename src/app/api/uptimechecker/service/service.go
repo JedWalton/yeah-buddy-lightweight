@@ -30,6 +30,14 @@ func (s *UptimeService) StartUptimeService() {
 func (s *UptimeService) StartUptimeServiceDev() {
 	db := s.repo.DB
 	userRepo := auth.NewUserRepository(db)
+	err := userRepo.DeleteUser("1) Dev User One")
+	if err != nil {
+		return
+	}
+	err = userRepo.DeleteUser("2) Dev User Two")
+	if err != nil {
+		return
+	}
 	userIdOne, _ := userRepo.CreateUser("1) Dev User One", "passwordHash")
 	userIdTwo, _ := userRepo.CreateUser("2) Dev User Two", "passwordHash")
 	isActive := true
@@ -40,8 +48,8 @@ func (s *UptimeService) StartUptimeServiceDev() {
 	if err != nil {
 		return
 	} // Create a new application
-	endpointId, err := s.RegisterNewEndpoint(applicationId, "https://lobster-app-dliao.ondigitalocean.app/", 30)
-	endpointId2, err := s.RegisterNewEndpoint(applicationId2, "https://lobster-app-dliao.ondigitalocean.app/", 30)
+	endpointId, err := s.RegisterNewEndpoint(applicationId, "https://lobster-app-dliao.ondigitalocean.app/", monitoringInterval)
+	endpointId2, err := s.RegisterNewEndpoint(applicationId2, "https://lobster-app-dliao.ondigitalocean.app/", monitoringInterval)
 	if err != nil {
 		return
 	} // Register a new endpoint

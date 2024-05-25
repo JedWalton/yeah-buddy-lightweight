@@ -1,6 +1,7 @@
 package htmxapp
 
 import (
+	"i-couldve-got-six-reps/htmxapp/pages/app"
 	"i-couldve-got-six-reps/htmxapp/pages/doc"
 	"i-couldve-got-six-reps/htmxapp/pages/home"
 
@@ -11,4 +12,5 @@ func InitHtmxApp(r *gin.Engine) {
 	r.LoadHTMLGlob("htmxapp/pages/**/*.html")
 	home.Init(r)
 	doc.Init(r)
+	app.Init(r)
 }

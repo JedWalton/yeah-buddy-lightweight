@@ -37,6 +37,7 @@ func (r *Repository) DeleteEndpoint(endpointId int) error {
 
 func (r *Repository) GetEndpoint(endpointId int) (*types.Endpoint, error) {
 	var endpoint types.Endpoint
+	log.Println("Getting endpoint with ID: ", endpointId)
 	query := `SELECT endpoint_id, application_id, url, monitoring_interval, is_active FROM Endpoints WHERE endpoint_id = $1`
 	err := r.DB.QueryRow(query, endpointId).Scan(&endpoint.EndpointID, &endpoint.ApplicationID, &endpoint.URL, &endpoint.MonitoringInterval, &endpoint.IsActive)
 	if err != nil {
