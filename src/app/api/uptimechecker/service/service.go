@@ -22,6 +22,10 @@ func NewUptimeService(database *sql.DB) *UptimeService {
 	}
 }
 
+func (s *UptimeService) Stop() {
+	s.cron.Stop() // Stop the cron scheduler
+}
+
 func (s *UptimeService) StartUptimeService() {
 	s.scheduleEndpointChecks() // Start scheduled monitoring
 	s.cron.Start()             // Start the cron scheduler
@@ -70,8 +74,4 @@ func (s *UptimeService) scheduleEndpointChecks() {
 
 func (s *UptimeService) schedule(spec string, job func()) (cron.EntryID, error) {
 	return s.cron.AddFunc(spec, job) // Schedule the job with the cron expression
-}
-
-func (s *UptimeService) Stop() {
-	s.cron.Stop() // Stop the cron scheduler
 }
