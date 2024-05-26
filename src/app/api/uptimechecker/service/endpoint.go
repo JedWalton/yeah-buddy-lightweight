@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-// Endpoint Services
+// CRUD
 func (s *UptimeService) RegisterNewEndpoint(applicationId int, url string, monitoringInterval int) (int, error) {
 	return s.repo.AddEndpoint(applicationId, url, monitoringInterval)
 }
@@ -25,12 +25,35 @@ func (s *UptimeService) ActivateEndpoint(endpointId int, url string, monitoringI
 	return s.repo.UpdateEndpoint(endpointId, url, monitoringInterval, isActive)
 }
 
+func (s *UptimeService) ListAllActiveEndpoints() ([]types.Endpoint, error) {
+	return s.repo.ListActiveEndpoints()
+}
+
+// END OF CRUD
+
 func (s *UptimeService) CheckEndpointUptime(endpointId int) error {
 	ticker := time.NewTicker(30 * time.Second) // Const
 	defer ticker.Stop()
 
 	log.Printf("Starting to check every 30s for endpoint %d", endpointId)
 
+	allResponses, err := getAllResponsesPerUnitTimeDatabaseEntry(endpointId, ticker, s)
+	if err != nil {
+		return err
+	}
+
+	// Now we can safely log and calculate after the goroutine is done
+	log.Printf("All endpoint responses per unit time check: %v", allResponses)
+	if len(allResponses) == 0 {
+		return fmt.Errorf("no responses collected")
+	}
+
+	uptimeLog := calculatePingEndpointResponseDatabaseEntry(allResponses)
+
+	return s.repo.LogUptime(uptimeLog)
+}
+
+func getAllResponsesPerUnitTimeDatabaseEntry(endpointId int, ticker *time.Ticker, s *UptimeService) ([]types.UptimeLog, error) {
 	quit := make(chan struct{})
 	done := make(chan error)
 	var allEndpointResponsesPerUnitTimeCheck []types.UptimeLog
@@ -60,18 +83,9 @@ func (s *UptimeService) CheckEndpointUptime(endpointId int) error {
 
 	// Wait for the goroutine to finish
 	if err := <-done; err != nil {
-		return err
+		return nil, err
 	}
-
-	// Now we can safely log and calculate after the goroutine is done
-	log.Printf("All endpoint responses per unit time check: %v", allEndpointResponsesPerUnitTimeCheck)
-	if len(allEndpointResponsesPerUnitTimeCheck) == 0 {
-		return fmt.Errorf("no responses collected")
-	}
-
-	uptimeLog := calculatePingEndpointResponseDatabaseEntry(allEndpointResponsesPerUnitTimeCheck)
-
-	return s.repo.LogUptime(uptimeLog)
+	return allEndpointResponsesPerUnitTimeCheck, nil
 }
 
 func calculatePingEndpointResponseDatabaseEntry(allEndpointResponsesPer10Min []types.UptimeLog) types.UptimeLog {
@@ -175,9 +189,4 @@ func (s *UptimeService) handleDowntime(endpoint types.Endpoint) {
 			log.Printf("Failed to send alert for endpoint %d: %v", endpoint.EndpointID, err)
 		}
 	}
-}
-
-func (s *UptimeService) ListAllActiveEndpoints() ([]types.Endpoint, error) {
-	// This would be a repository method to get all active endpoints
-	return s.repo.ListActiveEndpoints()
 }

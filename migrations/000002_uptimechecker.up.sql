@@ -19,7 +19,7 @@ CREATE TABLE Endpoints
     updated_at          TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE UptimeLogs
+CREATE TABLE UptimeLogsLast24Hours
 (
     log_id        SERIAL PRIMARY KEY,
     endpoint_id   INT NOT NULL REFERENCES Endpoints(endpoint_id) ON DELETE CASCADE,
@@ -27,6 +27,14 @@ CREATE TABLE UptimeLogs
     response_time INT,
     is_up         BOOLEAN,
     timestamp     TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE UptimeLogsDailyArchive
+(
+    log_id            SERIAL PRIMARY KEY,
+    endpoint_id       INT NOT NULL REFERENCES Endpoints(endpoint_id) ON DELETE CASCADE,
+    uptime_percentage FLOAT NOT NULL,
+    date              DATE DEFAULT CURRENT_DATE
 );
 
 CREATE TABLE NotificationChannels
