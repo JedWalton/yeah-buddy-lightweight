@@ -25,46 +25,56 @@ func (s *UptimeService) ActivateEndpoint(endpointId int, url string, monitoringI
 	return s.repo.UpdateEndpoint(endpointId, url, monitoringInterval, isActive)
 }
 
-func (s *UptimeService) CheckEndpointUptimeCalledEvery10Mins(endpointId int) error {
-	// Add a cron here every 30s.
-	// This will check the endpoint every 30s.
-	// Store results into data structure.
-	// After 10mins, do necessary calculations and store into db.
+func (s *UptimeService) CheckEndpointUptime(endpointId int) error {
 	ticker := time.NewTicker(30 * time.Second)
+	defer ticker.Stop()
+
+	log.Printf("Starting to check every 30s for endpoint %d", endpointId)
+
 	quit := make(chan struct{})
-	iterations := 0
-	var allEndpointResponsesPer10Min []types.UptimeLog
+	done := make(chan error)
+	var allEndpointResponsesPerUnitTimeCheck []types.UptimeLog
+
 	go func() {
+		defer close(done)
 		for {
 			select {
 			case <-ticker.C:
-				// do stuff
-				if iterations < 20 {
+				if len(allEndpointResponsesPerUnitTimeCheck) < (s.timeMinutesBetweenDbEntries * 2) {
 					pingEndpointResp, err := pingEndpointById(endpointId, s)
 					if err != nil {
 						log.Printf("Error pinging endpoint %d: %v", endpointId, err)
-						close(quit)
+						done <- err
 						return
 					}
-					allEndpointResponsesPer10Min = append(allEndpointResponsesPer10Min, pingEndpointResp)
+					allEndpointResponsesPerUnitTimeCheck = append(allEndpointResponsesPerUnitTimeCheck, pingEndpointResp)
 				} else {
-					close(quit)
+					done <- nil
+					return
 				}
 			case <-quit:
-				ticker.Stop()
 				return
 			}
 		}
 	}()
 
-	// Calculate the average response time and uptime percentage
-	uptimeLog := calculatePingEndpointResponseDatabaseEntry(allEndpointResponsesPer10Min)
+	// Wait for the goroutine to finish
+	if err := <-done; err != nil {
+		return err
+	}
+
+	// Now we can safely log and calculate after the goroutine is done
+	log.Printf("All endpoint responses per unit time check: %v", allEndpointResponsesPerUnitTimeCheck)
+	if len(allEndpointResponsesPerUnitTimeCheck) == 0 {
+		return fmt.Errorf("no responses collected")
+	}
+
+	uptimeLog := calculatePingEndpointResponseDatabaseEntry(allEndpointResponsesPerUnitTimeCheck)
 
 	return s.repo.LogUptime(uptimeLog)
 }
 
-func calculatePingEndpointResponseDatabaseEntry(
-	allEndpointResponsesPer10Min []types.UptimeLog) types.UptimeLog {
+func calculatePingEndpointResponseDatabaseEntry(allEndpointResponsesPer10Min []types.UptimeLog) types.UptimeLog {
 
 	var count int
 	for _, response := range allEndpointResponsesPer10Min {
@@ -122,7 +132,12 @@ func (s *UptimeService) pingEndpoint(endpointId int, url string) types.UptimeLog
 	isUp := resp.StatusCode >= 200 && resp.StatusCode <= 299
 	statusCode := resp.StatusCode
 
-	return types.UptimeLog{endpointId, statusCode, responseTime, isUp, time.Now()}
+	return types.UptimeLog{
+		EndpointID:   endpointId,
+		StatusCode:   statusCode,
+		ResponseTime: responseTime,
+		IsUp:         isUp,
+		Timestamp:    time.Now()}
 }
 
 // CheckAllEndpoints Triggered every 10mins. This will check all active endpoints
@@ -137,7 +152,7 @@ func (s *UptimeService) CheckAllEndpoints() {
 
 	for _, endpoint := range endpoints {
 		go func(ep types.Endpoint) {
-			err := s.CheckEndpointUptimeCalledEvery10Mins(ep.EndpointID)
+			err := s.CheckEndpointUptime(ep.EndpointID)
 			if err != nil {
 				log.Printf("Uptime check failed for endpoint %d: %v", ep.EndpointID, err)
 				s.handleDowntime(ep)

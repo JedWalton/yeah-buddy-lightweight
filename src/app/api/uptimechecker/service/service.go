@@ -5,13 +5,15 @@ import (
 	"i-couldve-got-six-reps/api/auth"
 	uptimechecker "i-couldve-got-six-reps/api/uptimechecker/data"
 	"log"
+	"strconv"
 
 	"github.com/robfig/cron/v3"
 )
 
 type UptimeService struct {
-	repo uptimechecker.Repository
-	cron *cron.Cron // Add a cron field to manage the lifecycle of the cron scheduler
+	timeMinutesBetweenDbEntries int
+	repo                        uptimechecker.Repository
+	cron                        *cron.Cron // Add a cron field to manage the lifecycle of the cron scheduler
 }
 
 func NewUptimeService(database *sql.DB) *UptimeService {
@@ -32,15 +34,17 @@ func (s *UptimeService) StartUptimeService() {
 }
 
 func (s *UptimeService) StartUptimeServiceDev() {
-	if scheduleEndpointChecksDev(s) {
-		return
-	}
+	scheduleEndpointChecksDev(s)
 	s.cron.Start() // Start the cron scheduler
 }
 
 func (s *UptimeService) scheduleEndpointChecksAndDbEntry() {
 	// Setup the periodic checks
-	cronSchedule := "@every 10m" // Using a cron expression for every 30 seconds
+	s.timeMinutesBetweenDbEntries = 1
+	cronSchedule := "@every " + strconv.Itoa(s.timeMinutesBetweenDbEntries) + "m" // Using a cron expression for every 30 seconds
+	log.Println("Scheduling endpoint checks every " + strconv.Itoa(s.timeMinutesBetweenDbEntries) + " minutes")
+
+	// Add a cron job to check all endpoints
 	_, err := s.cron.AddFunc(cronSchedule, s.CheckAllEndpoints)
 	if err != nil {
 		log.Printf("Failed to schedule endpoint checks: %v", err)
