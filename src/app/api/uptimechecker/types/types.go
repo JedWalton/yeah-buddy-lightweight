@@ -24,7 +24,6 @@ type Endpoint struct {
 
 // UptimeLog represents a log entry for monitoring an endpoint.
 type UptimeLog struct {
-	LogID        int       // Unique identifier for the log entry
 	EndpointID   int       // Identifier for the endpoint this log belongs to
 	StatusCode   int       // HTTP status code received from the endpoint
 	ResponseTime int       // Time taken to get a response from the endpoint

@@ -27,20 +27,36 @@ func (s *UptimeService) Stop() {
 }
 
 func (s *UptimeService) StartUptimeService() {
-	s.scheduleEndpointChecks() // Start scheduled monitoring
-	s.cron.Start()             // Start the cron scheduler
+	s.scheduleEndpointChecksAndDbEntry() // Start scheduled monitoring
+	s.cron.Start()                       // Start the cron scheduler
 }
 
 func (s *UptimeService) StartUptimeServiceDev() {
+	if scheduleEndpointChecksDev(s) {
+		return
+	}
+	s.cron.Start() // Start the cron scheduler
+}
+
+func (s *UptimeService) scheduleEndpointChecksAndDbEntry() {
+	// Setup the periodic checks
+	cronSchedule := "@every 10m" // Using a cron expression for every 30 seconds
+	_, err := s.cron.AddFunc(cronSchedule, s.CheckAllEndpoints)
+	if err != nil {
+		log.Printf("Failed to schedule endpoint checks: %v", err)
+	}
+}
+
+func scheduleEndpointChecksDev(s *UptimeService) bool {
 	db := s.repo.DB
 	userRepo := auth.NewUserRepository(db)
 	err := userRepo.DeleteUser("1) Dev User One")
 	if err != nil {
-		return
+		return true
 	}
 	err = userRepo.DeleteUser("2) Dev User Two")
 	if err != nil {
-		return
+		return true
 	}
 	userIdOne, _ := userRepo.CreateUser("1) Dev User One", "passwordHash")
 	userIdTwo, _ := userRepo.CreateUser("2) Dev User Two", "passwordHash")
@@ -50,28 +66,15 @@ func (s *UptimeService) StartUptimeServiceDev() {
 	applicationId, err := s.CreateNewApplication(userIdOne, "1) Dev Application", "Dev application")
 	applicationId2, err := s.CreateNewApplication(userIdTwo, "2) Dev Application 2", "Dev application 2")
 	if err != nil {
-		return
+		return true
 	} // Create a new application
 	endpointId, err := s.RegisterNewEndpoint(applicationId, "https://lobster-app-dliao.ondigitalocean.app/", monitoringInterval)
 	endpointId2, err := s.RegisterNewEndpoint(applicationId2, "https://lobster-app-dliao.ondigitalocean.app/", monitoringInterval)
 	if err != nil {
-		return
+		return true
 	} // Register a new endpoint
 	err = s.ActivateEndpoint(endpointId, url, monitoringInterval, isActive)
 	err = s.ActivateEndpoint(endpointId2, url, monitoringInterval, isActive)
-	s.scheduleEndpointChecks() // Start scheduled monitoring
-	s.cron.Start()             // Start the cron scheduler
-}
-
-func (s *UptimeService) scheduleEndpointChecks() {
-	// Setup the periodic checks
-	cronSchedule := "@every 30s" // Using a cron expression for every 30 seconds
-	_, err := s.schedule(cronSchedule, s.CheckAllEndpoints)
-	if err != nil {
-		log.Printf("Failed to schedule endpoint checks: %v", err)
-	}
-}
-
-func (s *UptimeService) schedule(spec string, job func()) (cron.EntryID, error) {
-	return s.cron.AddFunc(spec, job) // Schedule the job with the cron expression
+	s.scheduleEndpointChecksAndDbEntry() // Start scheduled monitoring
+	return false
 }

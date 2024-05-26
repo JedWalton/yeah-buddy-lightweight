@@ -32,6 +32,9 @@ func getGraphData(c *gin.Context) {
 
 /*
 * Only write to the DB every 10 mins to reduce load on the db.
+* If is all of last 10 mins, write to db for persistent log entry.
+
+
 * Provide a calculation of average response
 * Implement pings from different regions.
 * Implement a way to notify the user if the site is down.
