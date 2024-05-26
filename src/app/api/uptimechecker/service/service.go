@@ -40,7 +40,7 @@ func (s *UptimeService) StartUptimeServiceDev() {
 
 func (s *UptimeService) scheduleEndpointChecksAndDbEntry() {
 	// Setup the periodic checks
-	s.timeMinutesBetweenDbEntries = 1
+	s.timeMinutesBetweenDbEntries = 1                                             // Const
 	cronSchedule := "@every " + strconv.Itoa(s.timeMinutesBetweenDbEntries) + "m" // Using a cron expression for every 30 seconds
 	log.Println("Scheduling endpoint checks every " + strconv.Itoa(s.timeMinutesBetweenDbEntries) + " minutes")
 

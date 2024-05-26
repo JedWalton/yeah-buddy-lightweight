@@ -26,7 +26,7 @@ func (s *UptimeService) ActivateEndpoint(endpointId int, url string, monitoringI
 }
 
 func (s *UptimeService) CheckEndpointUptime(endpointId int) error {
-	ticker := time.NewTicker(30 * time.Second)
+	ticker := time.NewTicker(30 * time.Second) // Const
 	defer ticker.Stop()
 
 	log.Printf("Starting to check every 30s for endpoint %d", endpointId)
@@ -40,7 +40,7 @@ func (s *UptimeService) CheckEndpointUptime(endpointId int) error {
 		for {
 			select {
 			case <-ticker.C:
-				if len(allEndpointResponsesPerUnitTimeCheck) < (s.timeMinutesBetweenDbEntries * 2) {
+				if len(allEndpointResponsesPerUnitTimeCheck) < (s.timeMinutesBetweenDbEntries * 2) { // Const
 					pingEndpointResp, err := pingEndpointById(endpointId, s)
 					if err != nil {
 						log.Printf("Error pinging endpoint %d: %v", endpointId, err)
