@@ -29,8 +29,8 @@ func (s *UptimeService) Stop() {
 }
 
 func (s *UptimeService) StartUptimeService() {
-	s.scheduleEndpointChecksAndDbEntry() // Start scheduled monitoring
-	s.cron.Start()                       // Start the cron scheduler
+	scheduleEndpointChecksAndDbEntry(s) // Start scheduled monitoring
+	s.cron.Start()                      // Start the cron scheduler
 }
 
 func (s *UptimeService) StartUptimeServiceDev() {
@@ -38,7 +38,7 @@ func (s *UptimeService) StartUptimeServiceDev() {
 	s.cron.Start() // Start the cron scheduler
 }
 
-func (s *UptimeService) scheduleEndpointChecksAndDbEntry() {
+func scheduleEndpointChecksAndDbEntry(s *UptimeService) {
 	// Setup the periodic checks
 	s.timeMinutesBetweenDbEntries = 1                                             // Const
 	cronSchedule := "@every " + strconv.Itoa(s.timeMinutesBetweenDbEntries) + "m" // Using a cron expression for every 30 seconds
@@ -79,6 +79,6 @@ func scheduleEndpointChecksDev(s *UptimeService) bool {
 	} // Register a new endpoint
 	err = s.ActivateEndpoint(endpointId, url, monitoringInterval, isActive)
 	err = s.ActivateEndpoint(endpointId2, url, monitoringInterval, isActive)
-	s.scheduleEndpointChecksAndDbEntry() // Start scheduled monitoring
+	scheduleEndpointChecksAndDbEntry(s) // Start scheduled monitoring
 	return false
 }
