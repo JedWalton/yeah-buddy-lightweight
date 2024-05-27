@@ -6,10 +6,11 @@ import (
 	"time"
 )
 
-func (s *UptimeService) ArchiveDay() error {
+func (s *UptimeService) ArchiveDay() {
 	endpoints, err := s.repo.ListActiveEndpoints()
 	if err != nil {
-		return err // Properly return the error if it occurs
+		log.Printf("Error retrieving active endpoints: %v", err)
+		return
 	}
 
 	pruneDate := time.Now().AddDate(0, 0, -2) // Go back two days
@@ -27,7 +28,6 @@ func (s *UptimeService) ArchiveDay() error {
 			continue // Log the error and continue processing other endpoints
 		}
 	}
-	return nil // Return nil to indicate successful execution
 }
 
 func archiveUptimePercentageForThisDay(

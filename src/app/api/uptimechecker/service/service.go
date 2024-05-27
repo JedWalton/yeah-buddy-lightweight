@@ -30,12 +30,27 @@ func (s *UptimeService) Stop() {
 
 func (s *UptimeService) StartUptimeService() {
 	scheduleEndpointChecksAndDbEntry(s) // Start scheduled monitoring
+	scheduleDailyArchiving(s)           // Start scheduled daily archiving
 	s.cron.Start()                      // Start the cron scheduler
 }
 
 func (s *UptimeService) StartUptimeServiceDev() {
 	scheduleEndpointChecksDev(s)
-	s.cron.Start() // Start the cron scheduler
+	scheduleDailyArchiving(s) // Start scheduled daily archiving
+	s.cron.Start()            // Start the cron scheduler
+}
+
+func scheduleDailyArchiving(s *UptimeService) {
+	// Setup the daily archiving
+	cronSchedule := "@every " + strconv.Itoa(1440) + "m"
+	log.Println("Scheduling daily archiving")
+
+	// Add a cron job to archive the uptime percentage for the day
+	_, err := s.cron.AddFunc(cronSchedule, s.ArchiveDay)
+	if err != nil {
+		log.Printf("Failed to schedule daily archiving: %v", err)
+	}
+
 }
 
 func scheduleEndpointChecksAndDbEntry(s *UptimeService) {

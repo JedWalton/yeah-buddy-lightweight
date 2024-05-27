@@ -81,10 +81,7 @@ func TestArchiveDay(t *testing.T) {
 	service := UptimeService{repo: repo}
 
 	// Execute ArchiveDay
-	err = service.ArchiveDay()
-	if err != nil {
-		t.Fatalf("ArchiveDay failed: %v", err)
-	}
+	service.ArchiveDay()
 
 	// Verify the results
 	for _, endpointID := range []int{endpointId1, endpointId2} {
