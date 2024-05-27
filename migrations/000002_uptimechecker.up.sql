@@ -19,7 +19,7 @@ CREATE TABLE Endpoints
     updated_at          TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE UptimeLogsLast24Hours
+CREATE TABLE UptimeLogs
 (
     log_id        SERIAL PRIMARY KEY,
     endpoint_id   INT NOT NULL REFERENCES Endpoints(endpoint_id) ON DELETE CASCADE,

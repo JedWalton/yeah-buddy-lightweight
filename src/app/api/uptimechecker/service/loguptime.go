@@ -3,36 +3,41 @@ package uptimechecker
 import (
 	"i-couldve-got-six-reps/api/uptimechecker/types"
 	"log"
+	"time"
 )
 
-func ArchiveToday(s *UptimeService) {
+func ArchiveDay(s *UptimeService, date time.Time) error {
 	endpoints, err := s.repo.ListActiveEndpoints()
 	if err != nil {
-		return
+		return err // Properly return the error if it occurs
 	}
 
 	for _, endpoint := range endpoints {
-		logs, err := s.repo.GetAllUptimeLogsForADayPerEndpointID(endpoint.EndpointID)
+		logs, err := s.repo.GetAllUptimeLogsForAGivenDayByEndpointIDAndDate(endpoint.EndpointID, date)
 		if err != nil {
-			continue
+			log.Printf("Error retrieving logs for endpoint %d: %v", endpoint.EndpointID, err)
+			continue // Log the error and continue processing other endpoints
 		}
 		uptimePercentageForThisDay := CalculateUptimePercentageForThisDay(logs)
 		// Archive the uptime percentage for this day
 		err = ArchiveUptimePercentageForThisDay(s, endpoint.EndpointID, uptimePercentageForThisDay)
 		if err != nil {
-			continue
+			log.Printf("Error archiving uptime percentage for endpoint %d: %v", endpoint.EndpointID, err)
+			continue // Log the error and continue processing other endpoints
 		}
 	}
+	return nil // Return nil to indicate successful execution
 }
 
 func ArchiveUptimePercentageForThisDay(s *UptimeService, endpointID int, uptimePercentage float64) error {
+	date := time.Now().AddDate(0, 0, -2).Format("1998-08-13")
 	// Archive the uptime percentage for this day
-	err := s.repo.ArchiveUptimePercentageForThisDay(endpointID, uptimePercentage)
+	err := s.repo.ArchiveUptimePercentageForThisDay(endpointID, uptimePercentage, date)
 	if err != nil {
 		log.Printf("Error archiving uptime percentage for endpoint %d: %v", endpointID, err)
 		return err
 	}
-	err = s.repo.RemoveUptimeLogsForToday(endpointID)
+	err = s.repo.PruneUptimeLogsByEndpointIDAndDate(endpointID, date)
 	if err != nil {
 		log.Printf("Error removing uptime logs for endpoint %d: %v", endpointID, err)
 		return err

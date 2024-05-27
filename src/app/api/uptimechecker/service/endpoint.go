@@ -31,6 +31,8 @@ func (s *UptimeService) ListAllActiveEndpoints() ([]types.Endpoint, error) {
 
 // END OF CRUD
 
+// Endpoint related operations
+
 func (s *UptimeService) CheckEndpointUptime(endpointId int) error {
 	ticker := time.NewTicker(30 * time.Second) // Const
 	defer ticker.Stop()
