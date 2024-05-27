@@ -7,158 +7,33 @@
     <script src="https://unpkg.com/htmx.org"></script>
     <script src="https://unpkg.com/tailwindcss-jit-cdn"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="//unpkg.com/globe.gl"></script>
+
 </head>
 <body>
+<div id="globeViz"></div>
 
-<!-- Snippet -->
-<section class="flex flex-col justify-center antialiased bg-gray-100 text-gray-600 min-h-screen">
-    <div class="max-w-3xl mx-auto p-2 sm:px-6 h-full">
-        <!-- Chart widget -->
-        <div class="flex flex-col col-span-full xl:col-span-8 bg-white shadow-lg rounded-sm border border-gray-200">
-            <header class="px-5 py-4 border-b border-gray-100 flex items-center">
-                <h2 class="font-semibold text-gray-800">Analytics</h2>
-            </header>
-            <div class="px-5 py-1">
-                <div class="flex flex-wrap">
-                    <!-- Unique Visitors -->
-                    <div class="flex items-center py-2">
-                        <div class="mr-5">
-                            <div class="flex items-center">
-                                <div class="text-3xl font-bold text-gray-800 mr-2">100%</div>
-                                <div class="text-sm font-medium text-green-500"></div>
-                            </div>
-                            <div class="text-sm text-gray-500">Uptime </div>
-                        </div>
-                        <div class="hidden md:block w-px h-8 bg-gray-200 mr-5" aria-hidden="true"></div>
-                    </div>
-                    <!-- Total Pageviews -->
-                    <div class="flex items-center py-2">
-                        <div class="mr-5">
-                            <div class="flex items-center">
-                                <div class="text-xl font-bold text-gray-800 mr-2">4 days, 13 hours, 15 mins, 15 seconds</div>
-                                <div class="text-sm font-medium text-green-500"></div>
-                            </div>
-                            <div class="text-sm text-gray-500">Up for</div>
-                        </div>
-                        <div class="hidden md:block w-px h-8 bg-gray-200 mr-5" aria-hidden="true"></div>
-                    </div>
-                    <!-- Bounce Rate -->
-                    <div class="flex items-center py-2">
-                        <div class="mr-5">
-                            <div class="flex items-center">
-                                <div class="text-3xl font-bold text-gray-800 mr-2">633ms</div>
-                                <div class="text-sm font-medium text-yellow-500"></div>
-                            </div>
-                            <div class="text-sm text-gray-500">Avg response time</div>
-                        </div>
-                        <div class="hidden md:block w-px h-8 bg-gray-200 mr-5" aria-hidden="true"></div>
-                    </div>
-                    <!-- Visit Duration-->
-                    <div class="flex items-center">
-                        <div>
-                            <div class="flex items-center">
-                                <div class="text-3xl font-bold text-gray-800 mr-2">0</div>
-                                <div class="text-sm font-medium text-yellow-500"></div>
-                            </div>
-                            <div class="text-sm text-gray-500">Incidents</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div id="graph-container">
-                <svg width="600" height="400"></svg>
-                <button hx-get="/app/graph-data" hx-trigger="every 0.5s" hx-swap="none" hx-target="#graph-container">Update Graph</button>
-            </div>
-            <script>
-                const svg = d3.select("svg"),
-                    margin = {top: 20, right: 20, bottom: 30, left: 40},
-                    width = +svg.attr("width") - margin.left - margin.right,
-                    height = +svg.attr("height") - margin.top - margin.bottom;
+<script>
+    // Gen random data
+    const N = 20;
+    const arcsData = [...Array(N).keys()].map(() => ({
+        startLat: (Math.random() - 0.5) * 180,
+        startLng: (Math.random() - 0.5) * 360,
+        endLat: (Math.random() - 0.5) * 180,
+        endLng: (Math.random() - 0.5) * 360,
+        color: [['red', 'white', 'blue', 'green'][Math.round(Math.random() * 3)], ['red', 'white', 'blue', 'green'][Math.round(Math.random() * 3)]]
+    }));
 
-                const g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
+    Globe()
+        .globeImageUrl('//unpkg.com/three-globe/example/img/earth-night.jpg')
+        .arcsData(arcsData)
+        .arcColor('color')
+        .arcDashLength(() => Math.random())
+        .arcDashGap(() => Math.random())
+        .arcDashAnimateTime(() => Math.random() * 4000 + 500)
+        (document.getElementById('globeViz'))
 
-                // Set up scales with increased padding for more whitespace
-                const xScale = d3.scaleBand().range([0, width]).padding(0.2); // Increase padding here
-                const yScale = d3.scaleLinear().range([height, 0]);
-
-                // Set up axes
-                const xAxis = g.append("g")
-                    .attr("class", "x-axis")
-                    .attr("transform", `translate(0,${height})`);
-
-                const yAxis = g.append("g")
-                    .attr("class", "y-axis");
-
-                let data = [];
-
-                document.body.addEventListener('htmx:beforeRequest', function(event) {
-                    // Get the next data point on each HTMX AJAX request
-                    fetch('/app/graph-data')
-                        .then(response => response.json())
-                        .then(newData => {
-                            // Add new data point
-                            data.push({
-                                timestamp: new Date().toISOString(), // Generate a timestamp or use server-side timestamp
-                                value: newData.value
-                            });
-
-                            // Keep the last 10 data points
-                            if (data.length > 100) {
-                                data.shift(); // Remove the oldest data point
-                            }
-
-                            updateGraph();
-                        });
-                });
-
-                function updateGraph() {
-                    // Update scales
-                    if (xScale.setDomain) {
-                        xScale.setDomain(data.map(d => d.timestamp));
-                    } else {
-                        xScale.domain(data.map(d => d.timestamp));
-                    }
-
-                    if (yScale.setDomain) {
-                        yScale.setDomain([0, d3.max(data, d => d.value)]);
-                    } else {
-                        yScale.domain([0, d3.max(data, d => d.value)]);
-                    }
-
-                    // Redraw axis
-                    xAxis.transition().call(d3.axisBottom(xScale))
-                        .selectAll("text")
-                        .attr("transform", "rotate(-45)")
-                        .style("text-anchor", "end");
-
-                    yAxis.transition().call(d3.axisLeft(yScale));
-
-                    // Bind data to bars
-                    const bars = g.selectAll(".bar")
-                        .data(data, d => d.timestamp);
-
-                    // Enter new bars
-                    bars.enter().append("rect")
-                        .attr("class", "bar")
-                        .attr("x", d => xScale(d.timestamp))
-                        .attr("width", xScale.bandwidth())
-                        .attr("fill", "#10B981") // TailwindCSS green-500, change as needed
-                        .merge(bars) // Merge enter and update selections
-                        .transition()
-                        .attr("y", d => yScale(d.value))
-                        .attr("height", d => height - yScale(d.value))
-                        .attr("fill", "#10B981"); // Ensure existing bars also turn green
-
-                    // Exit old bars
-                    bars.exit().remove();
-                }
-            </script>
-<!--            <div class="flex-grow">-->
-<!--                <canvas id="analytics-card-01" width="800" height="300"></canvas>-->
-<!--            </div>-->
-        </div>
-    </div>
-</section>
+</script>
 
 <!-- More components -->
 <div x-show="open" class="fixed bottom-0 right-0 w-full md:bottom-8 md:right-12 md:w-auto z-60" x-data="{ open: true }">
