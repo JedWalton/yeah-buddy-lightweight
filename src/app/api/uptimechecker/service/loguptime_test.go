@@ -1,191 +1,153 @@
 package uptimechecker
 
-//func TestUptimeService_ArchiveDay(t *testing.T) {
-//	// Initialize database and repositories
-//	database := db.Init()
-//	defer database.Close()
-//
-//	userRepo := auth.NewUserRepository(database)
-//
-//	/* Ensure Database is in cleanstate */
-//	_ = userRepo.DeleteUser("TestUptimeService_ArchiveDay User")
-//	/* End of Ensure Database is in cleanstate */
-//
-//	userId, _ := userRepo.CreateUser("TestUptimeService_ArchiveDay User", "passwordHash")
-//	repo := uptimechecker.NewUptimeCheckerRepository(database)
-//	applicationId, err := repo.CreateApplication(userId, "TestUptimeService_ArchiveDay",
-//		"TestUptimeService_ArchiveDay test application")
-//	if err != nil {
-//		t.Fatalf("Expected no error, got %v", err)
-//	}
-//	url := "http://TestAddEndpoint.com"
-//	monitoringInterval := 30
-//
-//	// Create multiple endpoints
-//	endpointId1, _ := repo.AddEndpoint(applicationId, url, monitoringInterval)
-//	endpointId2, _ := repo.AddEndpoint(applicationId, url, monitoringInterval)
-//
-//	// Generate and log uptime for multiple days and multiple endpoints
-//	baseTime := time.Now().AddDate(0, 0, -3) // Go back three days
-//	days := []int{-2, -1, 0}                 // logs for three days
-//
-//	for _, day := range days {
-//		for _, endpointId := range []int{endpointId1, endpointId2} {
-//			logTime := baseTime.AddDate(0, 0, day)
-//			log := types.UptimeLog{
-//				EndpointID:   endpointId,
-//				StatusCode:   200,
-//				ResponseTime: 120,
-//				IsUp:         day != -2, // Make one day have all down logs
-//				Timestamp:    logTime,
-//			}
-//			err := repo.LogUptime(log)
-//			if err != nil {
-//				t.Errorf("Failed to log uptime: %v", err)
-//			}
-//			log2 := types.UptimeLog{
-//				EndpointID:   endpointId,
-//				StatusCode:   200,
-//				ResponseTime: 129,
-//				IsUp:         day != -2, // Make one day have all down logs
-//				Timestamp:    logTime,
-//			}
-//			err2 := repo.LogUptime(log2)
-//			if err2 != nil {
-//				t.Errorf("Failed to log uptime: %v", err2)
-//			}
-//			log3 := types.UptimeLog{
-//				EndpointID:   endpointId,
-//				StatusCode:   200,
-//				ResponseTime: 125,
-//				IsUp:         day != -2, // Make one day have all down logs
-//				Timestamp:    logTime,
-//			}
-//			err3 := repo.LogUptime(log3)
-//			if err3 != nil {
-//				t.Errorf("Failed to log uptime: %v", err3)
-//			}
-//		}
-//	}
-//
-//	s := NewUptimeService(database)
-//	err = s.ArchiveDay()
-//	if err != nil {
-//		t.Errorf("Failed to archive uptime: %v", err)
-//	}
-//
-//}
-//
-//func TestCalculateUptimePercentageForThisDay(t *testing.T) {
-//	// table driven tests
-//	tests := []struct {
-//		name string
-//		logs []types.UptimeLog
-//		want float64
-//	}{
-//		{
-//			name: "All Uptime",
-//			logs: []types.UptimeLog{
-//				{IsUp: true},
-//				{IsUp: true},
-//				{IsUp: true},
-//			},
-//			want: 100.0,
-//		},
-//		{
-//			name: "All Downtime",
-//			logs: []types.UptimeLog{
-//				{IsUp: false},
-//				{IsUp: false},
-//				{IsUp: false},
-//			},
-//			want: 0.0,
-//		},
-//		{
-//			name: "Evenly Split",
-//			logs: []types.UptimeLog{
-//				{IsUp: true},
-//				{IsUp: false},
-//			},
-//			want: 50.0,
-//		},
-//		{
-//			name: "No Logs",
-//			logs: []types.UptimeLog{},
-//			want: 0.0,
-//		},
-//	}
-//
-//	for _, tt := range tests {
-//		t.Run(tt.name, func(t *testing.T) {
-//			got := calculateUptimePercentageForThisDay(tt.logs)
-//			if got != tt.want {
-//				t.Errorf("calculateUptimePercentageForThisDay() = %v, want %v", got, tt.want)
-//			}
-//		})
-//	}
-//}
+import (
+	"i-couldve-got-six-reps/api/auth"
+	"i-couldve-got-six-reps/api/db"
+	uptimechecker "i-couldve-got-six-reps/api/uptimechecker/data"
+	"i-couldve-got-six-reps/api/uptimechecker/types"
+	"testing"
+	"time"
 
-//// ArchiveUptimePercentageForThisDay archives the uptime percentage for a specific day and endpointID
-//func TestArchiveUptimePercentageForThisDay(t *testing.T) {
-//	// Initialize database and repositories
-//	database := db.Init()
-//	defer database.Close()
-//
-//	userRepo := auth.NewUserRepository(database)
-//
-//	/* Ensure Database is in cleanstate */
-//	_ = userRepo.DeleteUser("TestArchiveUptimePercentageForThisDay User")
-//	/* End of Ensure Database is in cleanstate */
-//
-//	userId, _ := userRepo.CreateUser("TestArchiveUptimePercentageForThisDay User",
-//		"passwordHash")
-//	repo := NewUptimeCheckerRepository(database)
-//	applicationId, err := repo.CreateApplication(
-//		userId,
-//		"TestArchiveUptimePercentageForThisDay app",
-//		"test application")
-//	if err != nil {
-//		t.Fatalf("Expected no error, got %v", err)
-//	}
-//	url := "http://TestAddEndpoint.com"
-//	monitoringInterval := 30
-//
-//	// Create multiple endpoints
-//	endpointId, _ := repo.AddEndpoint(applicationId, url, monitoringInterval)
-//
-//	// Generate and log uptime for multiple days and multiple endpoints
-//	_ = repo.LogUptime(types.UptimeLog{
-//		EndpointID:   endpointId,
-//		StatusCode:   200,
-//		ResponseTime: 121,
-//		IsUp:         true,
-//		Timestamp:    time.Now(),
-//	})
-//	_ = repo.LogUptime(types.UptimeLog{
-//		EndpointID:   endpointId,
-//		StatusCode:   200,
-//		ResponseTime: 124,
-//		IsUp:         true,
-//		Timestamp:    time.Now(),
-//	})
-//	_ = repo.LogUptime(types.UptimeLog{
-//		EndpointID:   endpointId,
-//		StatusCode:   200,
-//		ResponseTime: 130,
-//		IsUp:         false,
-//		Timestamp:    time.Now(),
-//	})
-//
-//	// Test GetAllUptimeLogsForAGivenDayByEndpointIDAndDate
-//	logs, err := repo.GetAllUptimeLogsForAGivenDayByEndpointIDAndDate(endpointId, time.Now())
-//	if err != nil {
-//		t.Errorf("Failed to get uptime logs: %v", err)
-//	}
-//
-//	uptimePercentageForThisDay := calculateUptimePercentageForThisDay(logs)
-//
-//
-//	/* Ensure Database is in cleanstate */
-//	_ = userRepo.DeleteUser("TestArchiveUptimePercentageForThisDay User")
-//	/* End of Ensure Database is in cleanstate */
+	"github.com/stretchr/testify/assert"
+)
+
+func TestArchiveDay(t *testing.T) {
+	// Initialize database and repositories
+	database := db.Init()
+	defer database.Close()
+
+	userRepo := auth.NewUserRepository(database)
+
+	// Ensure the database is in a clean state
+	_ = userRepo.DeleteUser("TestArchiveDay User")
+
+	// Create user and application
+	userId, err := userRepo.CreateUser("TestArchiveDay User", "passwordHash")
+	if err != nil {
+		t.Fatalf("Failed to create user: %v", err)
+	}
+
+	repo := uptimechecker.NewUptimeCheckerRepository(database)
+	applicationId, err := repo.CreateApplication(
+		userId,
+		"TestArchiveDay",
+		"Uptime Archive Day Test")
+	if err != nil {
+		t.Fatalf("Expected no error, got %v", err)
+	}
+
+	// Create multiple endpoints
+	endpointId1, err := repo.AddEndpoint(applicationId, "http://TestArchiveDayEndpoint1.com", 30)
+	if err != nil {
+		t.Fatalf("Failed to add endpoint: %v", err)
+	}
+	endpointId2, err := repo.AddEndpoint(applicationId, "http://TestArchiveDayEndpoint2.com", 30)
+	if err != nil {
+		t.Fatalf("Failed to add second endpoint: %v", err)
+	}
+
+	// Generate and log uptime for specific day (two days ago)
+	logDate := time.Now().AddDate(0, 0, -2) // Two days ago
+	for _, endpointID := range []int{endpointId1, endpointId2} {
+		for i := 0; i < 10; i++ {
+			log := types.UptimeLog{
+				EndpointID:   endpointID,
+				StatusCode:   200,
+				ResponseTime: 100,
+				IsUp:         i%2 == 0,
+				Timestamp:    logDate,
+			}
+			err := repo.LogUptime(log)
+			if err != nil {
+				t.Errorf("Failed to log uptime: %v", err)
+			}
+		}
+	}
+
+	// Create an instance of UptimeService
+	service := UptimeService{repo: repo}
+
+	// Execute ArchiveDay
+	err = service.ArchiveDay()
+	if err != nil {
+		t.Fatalf("ArchiveDay failed: %v", err)
+	}
+
+	// Verify the results
+	for _, endpointID := range []int{endpointId1, endpointId2} {
+		// Check if the uptime logs have been pruned
+		var count int
+		err = database.QueryRow("SELECT COUNT(*) FROM UptimeLogs WHERE endpoint_id = $1 "+
+			"AND DATE(timestamp) = $2", endpointID, logDate.Format("2006-01-02")).Scan(&count)
+		if err != nil {
+			t.Fatalf("Failed to verify pruned logs: %v", err)
+		}
+		assert.Equal(t, 0, count, "Expected no logs for the pruned date, but some were found")
+
+		// Check if uptime percentages have been archived
+		var uptimePercentage float64
+		err = database.QueryRow("SELECT uptime_percentage FROM UptimeLogsDailyArchive WHERE endpoint_id = $1 "+
+			"AND date = $2", endpointID, logDate.Format("2006-01-02")).Scan(&uptimePercentage)
+		if err != nil {
+			t.Fatalf("Failed to retrieve archived uptime percentage: %v", err)
+		}
+		assert.InEpsilon(t, 50.0, uptimePercentage, 0.1,
+			"Expected uptime percentage to be around 50%")
+	}
+
+	// Cleanup
+	_ = userRepo.DeleteUser("TestArchiveDay User")
+	if err != nil {
+		t.Logf("Failed to clean up user after tests: %v", err)
+	}
+}
+
+func TestCalculateUptimePercentageForThisDay(t *testing.T) {
+	// table driven tests
+	tests := []struct {
+		name string
+		logs []types.UptimeLog
+		want float64
+	}{
+		{
+			name: "All Uptime",
+			logs: []types.UptimeLog{
+				{IsUp: true},
+				{IsUp: true},
+				{IsUp: true},
+			},
+			want: 100.0,
+		},
+		{
+			name: "All Downtime",
+			logs: []types.UptimeLog{
+				{IsUp: false},
+				{IsUp: false},
+				{IsUp: false},
+			},
+			want: 0.0,
+		},
+		{
+			name: "Evenly Split",
+			logs: []types.UptimeLog{
+				{IsUp: true},
+				{IsUp: false},
+			},
+			want: 50.0,
+		},
+		{
+			name: "No Logs",
+			logs: []types.UptimeLog{},
+			want: 0.0,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := calculateUptimePercentageForThisDay(tt.logs)
+			if got != tt.want {
+				t.Errorf("calculateUptimePercentageForThisDay() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
