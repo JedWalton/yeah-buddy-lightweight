@@ -1,14 +1,14 @@
 package uptimechecker
 
 import (
+	"database/sql"
+	"github.com/stretchr/testify/assert"
 	"i-couldve-got-six-reps/api/auth"
 	"i-couldve-got-six-reps/api/db"
 	uptimechecker "i-couldve-got-six-reps/api/uptimechecker/data"
 	"i-couldve-got-six-reps/api/uptimechecker/types"
 	"testing"
 	"time"
-
-	"github.com/stretchr/testify/assert"
 )
 
 func TestArchiveDay(t *testing.T) {
@@ -26,7 +26,6 @@ func TestArchiveDay(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create user: %v", err)
 	}
-
 	repo := uptimechecker.NewUptimeCheckerRepository(database)
 	applicationId, err := repo.CreateApplication(
 		userId,
@@ -47,19 +46,33 @@ func TestArchiveDay(t *testing.T) {
 	}
 
 	// Generate and log uptime for specific day (two days ago)
-	logDate := time.Now().AddDate(0, 0, -2) // Two days ago
+	logDate := time.Now().AddDate(0, 0, -2)   // Two days ago
+	otherDate := time.Now().AddDate(0, 0, -1) // One day ago (should not be pruned or archived)
 	for _, endpointID := range []int{endpointId1, endpointId2} {
 		for i := 0; i < 10; i++ {
-			log := types.UptimeLog{
+			log1 := types.UptimeLog{
 				EndpointID:   endpointID,
 				StatusCode:   200,
 				ResponseTime: 100,
 				IsUp:         i%2 == 0,
 				Timestamp:    logDate,
 			}
-			err := repo.LogUptime(log)
+			log2 := types.UptimeLog{
+				EndpointID:   endpointID,
+				StatusCode:   200,
+				ResponseTime: 100,
+				IsUp:         i%2 == 0,
+				Timestamp:    otherDate,
+			}
+			// Logs for the logDate
+			err := repo.LogUptime(log1)
 			if err != nil {
-				t.Errorf("Failed to log uptime: %v", err)
+				t.Errorf("Failed to log uptime for logDate: %v", err)
+			}
+			// Logs for the otherDate
+			err = repo.LogUptime(log2)
+			if err != nil {
+				t.Errorf("Failed to log uptime for otherDate: %v", err)
 			}
 		}
 	}
@@ -75,31 +88,45 @@ func TestArchiveDay(t *testing.T) {
 
 	// Verify the results
 	for _, endpointID := range []int{endpointId1, endpointId2} {
-		// Check if the uptime logs have been pruned
-		var count int
-		err = database.QueryRow("SELECT COUNT(*) FROM UptimeLogs WHERE endpoint_id = $1 "+
-			"AND DATE(timestamp) = $2", endpointID, logDate.Format("2006-01-02")).Scan(&count)
-		if err != nil {
-			t.Fatalf("Failed to verify pruned logs: %v", err)
-		}
-		assert.Equal(t, 0, count, "Expected no logs for the pruned date, but some were found")
+		// Check if the logs for the logDate are pruned and archived correctly
+		verifyArchiveAndPrune(t, database, endpointID, logDate, 50.0)
 
-		// Check if uptime percentages have been archived
-		var uptimePercentage float64
-		err = database.QueryRow("SELECT uptime_percentage FROM UptimeLogsDailyArchive WHERE endpoint_id = $1 "+
-			"AND date = $2", endpointID, logDate.Format("2006-01-02")).Scan(&uptimePercentage)
-		if err != nil {
-			t.Fatalf("Failed to retrieve archived uptime percentage: %v", err)
-		}
-		assert.InEpsilon(t, 50.0, uptimePercentage, 0.1,
-			"Expected uptime percentage to be around 50%")
+		// Ensure that logs from the otherDate are not pruned or archived
+		verifyNotAffected(t, database, endpointID, otherDate)
 	}
 
 	// Cleanup
 	_ = userRepo.DeleteUser("TestArchiveDay User")
+}
+
+func verifyArchiveAndPrune(t *testing.T, db *sql.DB, endpointID int, date time.Time, expectedPerc float64) {
+	var count int
+	var uptimePercentage float64
+	// Verify pruned logs
+	err := db.QueryRow("SELECT COUNT(*) FROM UptimeLogs WHERE endpoint_id = $1 AND DATE(timestamp) = $2", endpointID, date.Format("2006-01-02")).Scan(&count)
 	if err != nil {
-		t.Logf("Failed to clean up user after tests: %v", err)
+		t.Fatalf("Failed to verify pruned logs: %v", err)
 	}
+	assert.Equal(t, 0, count, "Expected no logs for the pruned date, but some were found")
+	// Verify archived uptime
+	err = db.QueryRow("SELECT uptime_percentage FROM UptimeLogsDailyArchive WHERE endpoint_id = $1 AND date = $2", endpointID, date.Format("2006-01-02")).Scan(&uptimePercentage)
+	if err != nil {
+		t.Fatalf("Failed to retrieve archived uptime percentage: %v", err)
+	}
+	assert.InEpsilon(t, expectedPerc, uptimePercentage, 0.1, "Expected uptime percentage to be around the expected value")
+}
+
+func verifyNotAffected(t *testing.T, db *sql.DB, endpointID int, date time.Time) {
+	var count int
+	err := db.QueryRow("SELECT COUNT(*) FROM UptimeLogs WHERE endpoint_id = $1 AND DATE(timestamp) = $2", endpointID, date.Format("2006-01-02")).Scan(&count)
+	if err != nil {
+		t.Fatalf("Failed to verify non-pruned logs: %v", err)
+	}
+	assert.NotEqual(t, 0, count, "Logs for a day not targeted should not be pruned")
+
+	var uptimePercentage float64
+	err = db.QueryRow("SELECT uptime_percentage FROM UptimeLogsDailyArchive WHERE endpoint_id = $1 AND date = $2", endpointID, date.Format("2006-01-02")).Scan(&uptimePercentage)
+	assert.Error(t, err, "No archive should exist for non-targeted days")
 }
 
 func TestCalculateUptimePercentageForThisDay(t *testing.T) {
