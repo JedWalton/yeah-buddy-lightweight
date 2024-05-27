@@ -32,8 +32,25 @@ func (s *UptimeService) ListAllActiveEndpoints() ([]types.Endpoint, error) {
 // END OF CRUD
 
 // Endpoint related operations
+func (s *UptimeService) CheckAllEndpoints() {
+	endpoints, err := s.repo.ListActiveEndpoints()
+	if err != nil {
+		log.Printf("Error retrieving endpoints: %v", err)
+		return
+	}
 
-func (s *UptimeService) CheckEndpointUptime(endpointId int) error {
+	for _, endpoint := range endpoints {
+		go func(ep types.Endpoint) {
+			err := checkEndpointUptime(ep.EndpointID, s)
+			if err != nil {
+				log.Printf("Uptime check failed for endpoint %d: %v", ep.EndpointID, err)
+				s.handleDowntime(ep)
+			}
+		}(endpoint)
+	}
+}
+
+func checkEndpointUptime(endpointId int, s *UptimeService) error {
 	ticker := time.NewTicker(30 * time.Second) // Const
 	defer ticker.Stop()
 
@@ -117,13 +134,13 @@ func pingEndpointById(endpointId int, s *UptimeService) (types.UptimeLog, error)
 	if err != nil {
 		return types.UptimeLog{}, err
 	}
-	uptimeLog := s.pingEndpoint(endpointId, endpoint.URL)
+	uptimeLog := pingEndpoint(endpointId, endpoint.URL)
 	log.Printf("Endpoint %d is up: %v, status code: %d, response time: %dms", endpointId,
 		uptimeLog.IsUp, uptimeLog.StatusCode, uptimeLog.ResponseTime)
 	return uptimeLog, nil
 }
 
-func (s *UptimeService) pingEndpoint(endpointId int, url string) types.UptimeLog {
+func pingEndpoint(endpointId int, url string) types.UptimeLog {
 	// Start the timer to measure the response time
 	start := time.Now()
 
@@ -154,27 +171,6 @@ func (s *UptimeService) pingEndpoint(endpointId int, url string) types.UptimeLog
 		ResponseTime: responseTime,
 		IsUp:         isUp,
 		Timestamp:    time.Now()}
-}
-
-// CheckAllEndpoints Triggered every 10mins. This will check all active endpoints
-// And trigger 30s checks for each endpoint.
-// Only write to db after 10mins.
-func (s *UptimeService) CheckAllEndpoints() {
-	endpoints, err := s.repo.ListActiveEndpoints()
-	if err != nil {
-		log.Printf("Error retrieving endpoints: %v", err)
-		return
-	}
-
-	for _, endpoint := range endpoints {
-		go func(ep types.Endpoint) {
-			err := s.CheckEndpointUptime(ep.EndpointID)
-			if err != nil {
-				log.Printf("Uptime check failed for endpoint %d: %v", ep.EndpointID, err)
-				s.handleDowntime(ep)
-			}
-		}(endpoint)
-	}
 }
 
 func (s *UptimeService) handleDowntime(endpoint types.Endpoint) {

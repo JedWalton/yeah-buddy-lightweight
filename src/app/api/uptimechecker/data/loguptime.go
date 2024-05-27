@@ -14,7 +14,9 @@ func (r *Repository) LogUptime(log types.UptimeLog) error {
 	return err
 }
 
-func (r *Repository) GetAllUptimeLogsForAGivenDayByEndpointIDAndDate(endpointID int, date time.Time) ([]types.UptimeLog, error) {
+func (r *Repository) GetAllUptimeLogsForAGivenDayByEndpointIDAndDate(
+	endpointID int, date time.Time) ([]types.UptimeLog, error) {
+
 	var logs []types.UptimeLog
 	dateFormatted := date.Format("2006-01-02") // Correct date format for YYYY-MM-DD
 	query := `SELECT endpoint_id, status_code, response_time, is_up, timestamp
@@ -29,7 +31,12 @@ func (r *Repository) GetAllUptimeLogsForAGivenDayByEndpointIDAndDate(endpointID 
 
 	for rows.Next() {
 		var log types.UptimeLog
-		if err := rows.Scan(&log.EndpointID, &log.StatusCode, &log.ResponseTime, &log.IsUp, &log.Timestamp); err != nil {
+		if err := rows.Scan(
+			&log.EndpointID,
+			&log.StatusCode,
+			&log.ResponseTime,
+			&log.IsUp,
+			&log.Timestamp); err != nil {
 			return nil, err
 		}
 		logs = append(logs, log)
@@ -38,8 +45,8 @@ func (r *Repository) GetAllUptimeLogsForAGivenDayByEndpointIDAndDate(endpointID 
 }
 
 // ArchiveUptimePercentageForThisDay archives the uptime percentage for a specific day and endpointID
-func (r *Repository) ArchiveUptimePercentageForThisDay(endpointID int, uptimePercentage float64, date string) error {
-	query := `INSERT INTO UptimeLogsDailyArchive(endpoint_id, uptime_percentage, timestamp)
+func (r *Repository) ArchiveUptimePercentageForThisDay(endpointID int, uptimePercentage float64, date time.Time) error {
+	query := `INSERT INTO UptimeLogsDailyArchive(endpoint_id, uptime_percentage, date)
 				VALUES ($1, $2, $3)`
 
 	_, err := r.DB.Exec(query, endpointID, uptimePercentage, date)
@@ -49,7 +56,7 @@ func (r *Repository) ArchiveUptimePercentageForThisDay(endpointID int, uptimePer
 	return nil
 }
 
-func (r *Repository) PruneUptimeLogsByEndpointIDAndDate(endpointID int, date string) error {
+func (r *Repository) PruneUptimeLogsByEndpointIDAndDate(endpointID int, date time.Time) error {
 	query := `DELETE FROM UptimeLogs WHERE endpoint_id = $1 AND DATE(timestamp) = $2`
 
 	// Execute the query with endpointID and date as parameters

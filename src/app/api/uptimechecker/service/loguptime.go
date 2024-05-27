@@ -6,21 +6,22 @@ import (
 	"time"
 )
 
-func (s *UptimeService) ArchiveDay(date time.Time) error {
+func (s *UptimeService) ArchiveDay() error {
 	endpoints, err := s.repo.ListActiveEndpoints()
 	if err != nil {
 		return err // Properly return the error if it occurs
 	}
 
+	pruneDate := time.Now().AddDate(0, 0, -2) // Go back two days
 	for _, endpoint := range endpoints {
-		logs, err := s.repo.GetAllUptimeLogsForAGivenDayByEndpointIDAndDate(endpoint.EndpointID, date)
+		logs, err := s.repo.GetAllUptimeLogsForAGivenDayByEndpointIDAndDate(endpoint.EndpointID, pruneDate)
 		if err != nil {
 			log.Printf("Error retrieving logs for endpoint %d: %v", endpoint.EndpointID, err)
 			continue // Log the error and continue processing other endpoints
 		}
-		uptimePercentageForThisDay := CalculateUptimePercentageForThisDay(logs)
+		uptimePercentageForThisDay := calculateUptimePercentageForThisDay(logs)
 		// Archive the uptime percentage for this day
-		err = ArchiveUptimePercentageForThisDay(s, endpoint.EndpointID, uptimePercentageForThisDay)
+		err = archiveUptimePercentageForThisDay(s, endpoint.EndpointID, uptimePercentageForThisDay, pruneDate)
 		if err != nil {
 			log.Printf("Error archiving uptime percentage for endpoint %d: %v", endpoint.EndpointID, err)
 			continue // Log the error and continue processing other endpoints
@@ -29,15 +30,15 @@ func (s *UptimeService) ArchiveDay(date time.Time) error {
 	return nil // Return nil to indicate successful execution
 }
 
-func ArchiveUptimePercentageForThisDay(s *UptimeService, endpointID int, uptimePercentage float64) error {
-	date := time.Now().AddDate(0, 0, -2).Format("1998-08-13")
+func archiveUptimePercentageForThisDay(
+	s *UptimeService, endpointID int, uptimePercentage float64, pruneDate time.Time) error {
 	// Archive the uptime percentage for this day
-	err := s.repo.ArchiveUptimePercentageForThisDay(endpointID, uptimePercentage, date)
+	err := s.repo.ArchiveUptimePercentageForThisDay(endpointID, uptimePercentage, pruneDate)
 	if err != nil {
 		log.Printf("Error archiving uptime percentage for endpoint %d: %v", endpointID, err)
 		return err
 	}
-	err = s.repo.PruneUptimeLogsByEndpointIDAndDate(endpointID, date)
+	err = s.repo.PruneUptimeLogsByEndpointIDAndDate(endpointID, pruneDate)
 	if err != nil {
 		log.Printf("Error removing uptime logs for endpoint %d: %v", endpointID, err)
 		return err
@@ -45,7 +46,7 @@ func ArchiveUptimePercentageForThisDay(s *UptimeService, endpointID int, uptimeP
 	return nil
 }
 
-func CalculateUptimePercentageForThisDay(logs []types.UptimeLog) float64 {
+func calculateUptimePercentageForThisDay(logs []types.UptimeLog) float64 {
 	uptime := 0
 	downtime := 0
 	for _, log := range logs {

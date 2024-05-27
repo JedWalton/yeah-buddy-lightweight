@@ -31,6 +31,14 @@ type UptimeLog struct {
 	Timestamp    time.Time // Time when the check was performed
 }
 
+// ArchivedUptimeLog represents a log entry for monitoring an endpoint.
+type UptimeLogDailyArchive struct {
+	LogID            int       // Unique identifier for the log
+	EndpointID       int       // Identifier for the endpoint this log belongs to
+	UptimePercentage float64   // Uptime percentage for the day
+	Date             time.Time // Time when the check was performed
+}
+
 // NotificationChannel represents a channel through which notifications are sent.
 type NotificationChannel struct {
 	ChannelID     int       // Unique identifier for the channel
