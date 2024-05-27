@@ -9,8 +9,8 @@ import (
 // Uptime Log Management
 func (r *Repository) LogUptime(log types.UptimeLog) error {
 	query := `INSERT INTO UptimeLogs(endpoint_id, status_code, response_time, is_up, timestamp)
-				VALUES ($1, $2, $3, $4, NOW())`
-	_, err := r.DB.Exec(query, log.EndpointID, log.StatusCode, log.ResponseTime, log.IsUp)
+				VALUES ($1, $2, $3, $4, $5)`
+	_, err := r.DB.Exec(query, log.EndpointID, log.StatusCode, log.ResponseTime, log.IsUp, log.Timestamp)
 	return err
 }
 

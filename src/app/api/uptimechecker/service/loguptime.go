@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-func ArchiveDay(s *UptimeService, date time.Time) error {
+func (s *UptimeService) ArchiveDay(date time.Time) error {
 	endpoints, err := s.repo.ListActiveEndpoints()
 	if err != nil {
 		return err // Properly return the error if it occurs
