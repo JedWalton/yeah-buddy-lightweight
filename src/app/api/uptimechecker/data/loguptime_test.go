@@ -117,6 +117,8 @@ func TestArchiveUptimePercentageForThisDay(t *testing.T) {
 	assert.Equal(t, 100.0, uptimePerc, "Uptime percentage should be 100")
 	assert.True(t, date.Format("2006-01-02") == timestamp.Format("2006-01-02"), "Date should match the archived day")
 
+	/* Ensure Database is in cleanstate */
+	_ = userRepo.DeleteUser("TestArchiveUptimePercentageForThisDay User")
 }
 
 func TestPruneUptimeLogsByEndpointIDAndDate(t *testing.T) {
