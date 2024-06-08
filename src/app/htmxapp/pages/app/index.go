@@ -24,10 +24,21 @@ func Init(r *gin.Engine) {
 
 func getGraphData(c *gin.Context) {
 	var randomSource = rand.New(rand.NewSource(time.Now().UnixNano()))
-	data := map[string]float64{
-		"value": randomSource.Float64() * 100, // Use the custom random source
+	const N = 20
+	arcsData := make([]map[string]interface{}, N)
+	for i := 0; i < N; i++ {
+		arcsData[i] = map[string]interface{}{
+			"startLat": (randomSource.Float64() - 0.5) * 180,
+			"startLng": (randomSource.Float64() - 0.5) * 360,
+			"endLat":   (randomSource.Float64() - 0.5) * 180,
+			"endLng":   (randomSource.Float64() - 0.5) * 360,
+			"color": []string{
+				[]string{"red", "white", "blue", "green"}[randomSource.Intn(4)],
+				[]string{"red", "white", "blue", "green"}[randomSource.Intn(4)],
+			},
+		}
 	}
-	c.JSON(http.StatusOK, data)
+	c.JSON(http.StatusOK, arcsData)
 }
 
 /*
