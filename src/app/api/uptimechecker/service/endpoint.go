@@ -54,7 +54,7 @@ func checkEndpointUptime(endpointId int, s *UptimeService) error {
 	ticker := time.NewTicker(30 * time.Second) // Const
 	defer ticker.Stop()
 
-	log.Printf("Starting to check every 30s for endpoint %d", endpointId)
+	log.Printf("Starting to check every %d for endpoint %d", s.timeMinutesBetweenDbEntries, endpointId)
 
 	allResponses, err := getAllResponsesPerUnitTimeDatabaseEntry(endpointId, ticker, s)
 	if err != nil {

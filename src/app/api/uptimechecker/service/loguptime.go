@@ -20,6 +20,10 @@ func (s *UptimeService) ArchiveDay() {
 			log.Printf("Error retrieving logs for endpoint %d: %v", endpoint.EndpointID, err)
 			continue // Log the error and continue processing other endpoints
 		}
+		if (len(logs)) == 0 {
+			log.Printf("No logs found for endpoint %d. Not archived", endpoint.EndpointID)
+			continue // No logs for this endpoint for this day
+		}
 		uptimePercentageForThisDay := calculateUptimePercentageForThisDay(logs)
 		// Archive the uptime percentage for this day
 		err = archiveUptimePercentageForThisDay(s, endpoint.EndpointID, uptimePercentageForThisDay, pruneDate)
